@@ -48,7 +48,7 @@ namespace iroha {
           verified_proposal_subscription_,
           [this](
               const std::shared_ptr<shared_model::interface::VerifiedProposal>
-                  &verified_proposal) {
+                  verified_proposal) {
             this->process_verified_proposal(*verified_proposal);
           });
     }
