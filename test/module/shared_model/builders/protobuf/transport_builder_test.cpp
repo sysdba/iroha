@@ -19,6 +19,7 @@
 
 #include "block.pb.h"
 #include "builders/protobuf/transport_builder.hpp"
+#include "framework/result_fixture.hpp"
 #include "module/shared_model/builders/protobuf/test_block_builder.hpp"
 #include "module/shared_model/builders/protobuf/test_empty_block_builder.hpp"
 #include "module/shared_model/builders/protobuf/test_proposal_builder.hpp"
@@ -320,11 +321,10 @@ TEST_F(TransportBuilderTest, BlockVariantWithValidEmptyBlock) {
 TEST_F(TransportBuilderTest, BlockVariantWithInvalidEmptyBlock) {
   auto emptyBlock = createInvalidEmptyBlock();
 
-  TransportBuilder<interface::BlockVariantType,
-                   validation::DefaultAnyBlockValidator>()
-      .build(emptyBlock.getTransport())
-      .match([](const auto &) { FAIL(); },
-             [](const Error<std::string> &) { SUCCEED(); });
+  framework::expected::err(
+      TransportBuilder<interface::BlockVariantType,
+                       validation::DefaultAnyBlockValidator>()
+          .build(emptyBlock.getTransport()));
 }
 
 /**
@@ -362,9 +362,8 @@ TEST_F(TransportBuilderTest, BlockVariantWithValidBlock) {
 TEST_F(TransportBuilderTest, BlockVariantWithInvalidBlock) {
   auto block = createInvalidBlock();
 
-  TransportBuilder<interface::BlockVariantType,
-                   validation::DefaultAnyBlockValidator>()
-      .build(block.getTransport())
-      .match([](const auto &) { FAIL(); },
-             [](const Error<std::string> &) { SUCCEED(); });
+  framework::expected::err(
+      TransportBuilder<interface::BlockVariantType,
+                       validation::DefaultAnyBlockValidator>()
+          .build(block.getTransport()));
 }
