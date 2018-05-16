@@ -7,6 +7,7 @@
 #define IROHA_NON_EMPTY_TRANSACTIONS_VALIDATOR_HPP
 
 #include <boost/format.hpp>
+
 #include "interfaces/common_objects/types.hpp"
 #include "validators/answer.hpp"
 
@@ -21,7 +22,8 @@ namespace shared_model {
       NonEmptyTransactionsValidator(
           TransactionValidator transaction_validator = TransactionValidator())
           : transaction_validator_(transaction_validator) {}
-      virtual void validateTransactions(
+
+      void validateTransactions(
           ReasonsGroupType &reason,
           const interface::types::TransactionsCollectionType &transactions)
           const {

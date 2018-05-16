@@ -18,7 +18,7 @@ namespace shared_model {
           TransactionValidator transaction_validator = TransactionsValidator())
           : transaction_validator_(transaction_validator) {}
 
-      virtual void validateTransactions(
+      void validateTransactions(
           ReasonsGroupType &reason,
           const interface::types::TransactionsCollectionType &transactions)
           const {
