@@ -18,13 +18,18 @@
 #ifndef IROHA_SHARED_MODEL_PROTO_PROPOSAL_HPP
 #define IROHA_SHARED_MODEL_PROTO_PROPOSAL_HPP
 
-#include "backend/protobuf/proposal_template.hpp"
+#include "backend/protobuf/proto_proposal_template.hpp"
 #include "interfaces/iroha_internal/proposal.hpp"
 
 namespace shared_model {
   namespace proto {
-    using Proposal = ProposalTemplate<interface::Proposal>;
-  }
+
+    /**
+     * Proposal is non empty transactions set with additional meta-information:
+     * height, created time, creator account id
+     */
+    using Proposal = ProtoProposalTemplate<interface::Proposal>;
+  }  // namespace proto
 }  // namespace shared_model
 
 #endif  // IROHA_PROPOSAL_HPP

@@ -21,7 +21,11 @@ namespace shared_model {
   namespace interface {
 
     class AbstractProposal
+#ifndef DISABLE_BACKWARD
         : public Primitive<AbstractProposal, iroha::model::Proposal> {
+#else
+        : public ModelPrimitive<Model> {
+#endif
      public:
       template <class T>
       using w = detail::PolymorphicWrapper<T>;
