@@ -9,7 +9,6 @@
 #include "backend/protobuf/empty_block.hpp"
 #include "backend/protobuf/transaction.hpp"
 #include "block.pb.h"
-
 #include "builders/protobuf/unsigned_proto.hpp"
 #include "interfaces/base/signable.hpp"
 #include "interfaces/common_objects/types.hpp"

@@ -7,6 +7,7 @@
 #define IROHA_SHARED_MODEL_ABSTRACT_BLOCK_HPP
 
 #include <memory>
+
 #include "common/byteutils.hpp"
 #include "interfaces/base/signable.hpp"
 #include "interfaces/common_objects/types.hpp"
