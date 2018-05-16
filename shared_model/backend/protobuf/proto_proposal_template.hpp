@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#ifndef IROHA_PROPOSAL_TEMPLATE_HPP
-#define IROHA_PROPOSAL_TEMPLATE_HPP
+#ifndef IROHA_PROTO_PROPOSAL_TEMPLATE_HPP
+#define IROHA_PROTO_PROPOSAL_TEMPLATE_HPP
 
 #include "interfaces/iroha_internal/proposal.hpp"
 #include "interfaces/transaction.hpp"
@@ -22,29 +22,35 @@
 namespace shared_model {
   namespace proto {
 
+    /**
+     * Template class to create Proposal and Verified Proposal proto shared
+     * model types
+     * @tparam ParentType either proposal or verified proposal interface object
+     */
     template <typename ParentType>
-    class ProposalTemplate final
+    class ProtoProposalTemplate final
         : public CopyableProto<ParentType,
                                iroha::protocol::Proposal,
-                               ProposalTemplate<ParentType>> {
+                               ProtoProposalTemplate<ParentType>> {
       template <class T>
       using w = detail::PolymorphicWrapper<T>;
       using TransactionContainer = std::vector<w<interface::Transaction>>;
 
-      using CopyableProtoType = CopyableProto<ParentType,
-                                              iroha::protocol::Proposal,
-                                              ProposalTemplate<ParentType>>;
+      using CopyableProtoType =
+          CopyableProto<ParentType,
+                        iroha::protocol::Proposal,
+                        ProtoProposalTemplate<ParentType>>;
 
      public:
       template <class ProposalType>
-      explicit ProposalTemplate(ProposalType &&proposal)
+      explicit ProtoProposalTemplate(ProposalType &&proposal)
           : CopyableProtoType(std::forward<ProposalType>(proposal)) {}
 
-      ProposalTemplate(const ProposalTemplate<ParentType> &o)
-          : ProposalTemplate(o.proto_) {}
+      ProtoProposalTemplate(const ProtoProposalTemplate<ParentType> &o)
+          : ProtoProposalTemplate(o.proto_) {}
 
-      ProposalTemplate(ProposalTemplate<ParentType> &&o) noexcept
-          : ProposalTemplate(std::move(o.proto_)) {}
+      ProtoProposalTemplate(ProtoProposalTemplate<ParentType> &&o) noexcept
+          : ProtoProposalTemplate(std::move(o.proto_)) {}
 
       const TransactionContainer &transactions() const override {
         return *transactions_;
@@ -76,4 +82,4 @@ namespace shared_model {
   }  // namespace proto
 }  // namespace shared_model
 
-#endif  // IROHA_PROPOSAL_TEMPLATE_HPP
+#endif  // IROHA_PROTO_PROPOSAL_TEMPLATE_HPP

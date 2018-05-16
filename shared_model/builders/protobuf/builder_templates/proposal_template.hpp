@@ -32,6 +32,7 @@ namespace shared_model {
      * means of replacing template parameters
      * @tparam S -- field counter for checking that all required fields are set
      * @tparam SV -- stateless validator called when build method is invoked
+     * @tparam BT -- type of object to be built
      */
     template <int S = 0,
               typename SV = validation::DefaultProposalValidator,
