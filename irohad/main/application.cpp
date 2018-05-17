@@ -72,6 +72,7 @@ void Irohad::init() {
   initValidators();
   initOrderingGate();
   initSimulator();
+  consensus_result_cache_ = nullptr;
   initBlockLoader();
   initConsensusGate();
   initSynchronizer();
@@ -196,7 +197,8 @@ void Irohad::initConsensusGate() {
                                               block_loader,
                                               keypair,
                                               vote_delay_,
-                                              load_delay_);
+                                              load_delay_,
+                                              consensus_result_cache_);
 
   log_->info("[Init] => consensus gate");
 }

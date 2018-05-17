@@ -33,8 +33,7 @@ namespace iroha {
           blockLoader_(std::move(blockLoader)) {
       log_ = logger::log("synchronizer");
       consensus_gate->on_commit().subscribe(
-          subscription_,
-          [&](std::shared_ptr<shared_model::interface::Block> block) {
+          subscription_, [&](shared_model::interface::BlockVariantType block) {
             this->process_commit(block);
           });
     }
@@ -44,7 +43,7 @@ namespace iroha {
     }
 
     void SynchronizerImpl::process_commit(
-        std::shared_ptr<shared_model::interface::Block> commit_message) {
+        shared_model::interface::BlockVariantType &commit_message) {
       log_->info("processing commit");
       auto storageResult = mutableFactory_->createMutableStorage();
       std::unique_ptr<ametsuchi::MutableStorage> storage;
@@ -59,45 +58,50 @@ namespace iroha {
         return;
       }
 
-      if (validator_->validateBlock(*commit_message, *storage)) {
+      if (validator_->validateBlock(commit_message, *storage)) {
         // Block can be applied to current storage
         // Commit to main Ametsuchi
         mutableFactory_->commit(std::move(storage));
 
-        auto single_commit = rxcpp::observable<>::just(commit_message);
+        // TODO kamilsa 17.05.2018 remove cast to block
+        auto single_commit = rxcpp::observable<>::just(
+            boost::get<std::shared_ptr<shared_model::interface::Block>>(
+                commit_message));
 
         notifier_.get_subscriber().on_next(single_commit);
       } else {
         // Block can't be applied to current storage
         // Download all missing blocks
-        for (const auto &signature : commit_message->signatures()) {
-          auto storageResult = mutableFactory_->createMutableStorage();
-          std::unique_ptr<ametsuchi::MutableStorage> storage;
-          storageResult.match(
-              [&](expected::Value<std::unique_ptr<ametsuchi::MutableStorage>>
-                      &_storage) { storage = std::move(_storage.value); },
-              [&](expected::Error<std::string> &error) {
-                storage = nullptr;
-                log_->error(error.error);
-              });
-          if (not storage) {
-            return;
-          }
-          auto chain = blockLoader_->retrieveBlocks(
-              shared_model::crypto::PublicKey(signature.publicKey()));
-          // Check chain last commit
-          auto is_chain_end_expected =
-              chain.as_blocking().last()->hash() == commit_message->hash();
+        iroha::visit_in_place(commit_message, [this](const auto &any_block) {
+          for (const auto &signature : any_block->signatures()) {
+            auto storageResult = mutableFactory_->createMutableStorage();
+            std::unique_ptr<ametsuchi::MutableStorage> storage;
+            storageResult.match(
+                [&](expected::Value<std::unique_ptr<ametsuchi::MutableStorage>>
+                        &_storage) { storage = std::move(_storage.value); },
+                [&](expected::Error<std::string> &error) {
+                  storage = nullptr;
+                  log_->error(error.error);
+                });
+            if (not storage) {
+              return;
+            }
+            auto chain = blockLoader_->retrieveBlocks(
+                shared_model::crypto::PublicKey(signature.publicKey()));
+            // Check chain last commit
+            auto is_chain_end_expected =
+                chain.as_blocking().last()->hash() == any_block->hash();
 
-          if (validator_->validateChain(chain, *storage)
-              and is_chain_end_expected) {
-            // Peer send valid chain
-            mutableFactory_->commit(std::move(storage));
-            notifier_.get_subscriber().on_next(chain);
-            // You are synchronized
-            return;
+            if (validator_->validateChain(chain, *storage)
+                and is_chain_end_expected) {
+              // Peer send valid chain
+              mutableFactory_->commit(std::move(storage));
+              notifier_.get_subscriber().on_next(chain);
+              // You are synchronized
+              return;
+            }
           }
-        }
+        });
       }
     }
 

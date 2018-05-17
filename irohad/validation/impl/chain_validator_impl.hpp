@@ -18,6 +18,8 @@
 #define IROHA_CHAIN_VALIDATOR_IMPL_HPP
 
 #include <memory>
+#include <interfaces/iroha_internal/abstract_block.hpp>
+#include <interfaces/iroha_internal/block_variant.hpp>
 
 #include "logger/logger.hpp"
 #include "validation/chain_validator.hpp"
@@ -41,7 +43,7 @@ namespace iroha {
               blocks,
           ametsuchi::MutableStorage &storage) override;
 
-      bool validateBlock(const shared_model::interface::Block &block,
+      bool validateBlock(const shared_model::interface::BlockVariantType &block,
                          ametsuchi::MutableStorage &storage) override;
 
      private:

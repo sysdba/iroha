@@ -63,8 +63,9 @@ namespace iroha {
        * @param storage -  storage that may be modified during block appliance
        * @return true if block is valid and can be applied, false otherwise
        */
-      virtual bool validateBlock(const shared_model::interface::Block &block,
-                                 ametsuchi::MutableStorage &storage) = 0;
+      virtual bool validateBlock(
+          const shared_model::interface::BlockVariantType &block,
+          ametsuchi::MutableStorage &storage) = 0;
     };
   }  // namespace validation
 }  // namespace iroha

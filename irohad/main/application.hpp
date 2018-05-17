@@ -167,6 +167,8 @@ class Irohad {
   // simulator
   std::shared_ptr<iroha::simulator::Simulator> simulator;
 
+  iroha::network::ConsensusResultType consensus_result_cache_;
+
   // block loader
   std::shared_ptr<iroha::network::BlockLoader> block_loader;
 

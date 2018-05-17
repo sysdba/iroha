@@ -31,24 +31,26 @@ namespace iroha {
     }
 
     bool ChainValidatorImpl::validateBlock(
-        const shared_model::interface::Block &block,
+        const shared_model::interface::BlockVariantType &block_variant,
         ametsuchi::MutableStorage &storage) {
-      log_->info("validate block: height {}, hash {}",
-                 block.height(),
-                 block.hash().hex());
-      auto apply_block =
-          [this](const auto &block, auto &queries, const auto &top_hash) {
-            auto peers = queries.getPeers();
-            if (not peers) {
-              return false;
-            }
-            return block.prevHash() == top_hash
-                and supermajority_checker_->hasSupermajority(block.signatures(),
-                                                             peers.value());
-          };
+      return iroha::visit_in_place(block, [this](const auto &any_block) {
+        log_->info("validate block: height {}, hash {}",
+                   any_block->height(),
+                   any_block->hash().hex());
+        auto apply_block =
+            [this](const auto &block, auto &queries, const auto &top_hash) {
+              auto peers = queries.getPeers();
+              if (not peers) {
+                return false;
+              }
+              return block.prevHash() == top_hash
+                  and supermajority_checker_->hasSupermajority(
+                          block.signatures(), peers.value());
+            };
 
-      // Apply to temporary storage
-      return storage.apply(block, apply_block);
+        // Apply to temporary storage
+        return storage.apply(*any_block, apply_block);
+      });
     }
 
     bool ChainValidatorImpl::validateChain(

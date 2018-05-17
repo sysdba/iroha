@@ -41,13 +41,15 @@ namespace iroha {
           std::shared_ptr<YacHashProvider> hash_provider,
           std::shared_ptr<simulator::BlockCreator> block_creator,
           std::shared_ptr<network::BlockLoader> block_loader,
-          uint64_t delay)
+          uint64_t delay,
+          network::ConsensusResultType result_cache)
           : hash_gate_(std::move(hash_gate)),
             orderer_(std::move(orderer)),
             hash_provider_(std::move(hash_provider)),
             block_creator_(std::move(block_creator)),
             block_loader_(std::move(block_loader)),
-            delay_(delay) {
+            delay_(delay),
+            result_cache_(result_cache) {
         log_ = logger::log("YacGate");
         block_creator_->on_block().subscribe(
             [this](auto block) { this->vote(block); });

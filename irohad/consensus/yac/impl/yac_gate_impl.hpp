@@ -48,7 +48,8 @@ namespace iroha {
                     std::shared_ptr<YacHashProvider> hash_provider,
                     std::shared_ptr<simulator::BlockCreator> block_creator,
                     std::shared_ptr<network::BlockLoader> block_loader,
-                    uint64_t delay);
+                    uint64_t delay,
+                    network::ConsensusResultType consensus_result_cache_);
         void vote(const shared_model::interface::BlockVariantType &) override;
         /**
          * method called when commit recived
@@ -78,7 +79,7 @@ namespace iroha {
         std::pair<YacHash, shared_model::interface::BlockVariantType>
             current_block_;
 
-        std::shared_ptr<shared_model::interface::BlockVariantType> result_cache_;
+        network::ConsensusResultType result_cache_;
       };
 
     }  // namespace yac

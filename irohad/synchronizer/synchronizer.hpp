@@ -35,7 +35,7 @@ namespace iroha {
        * Processing last committed block
        */
       virtual void process_commit(
-          std::shared_ptr<shared_model::interface::Block> commit_message) = 0;
+          shared_model::interface::BlockVariantType &commit_message) = 0;
 
       /**
        * Emit committed blocks
