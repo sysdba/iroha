@@ -18,7 +18,13 @@
 #include <gtest/gtest.h>
 
 #include "block.pb.h"
+#include "builders/protobuf/block.hpp"
+#include "builders/protobuf/empty_block.hpp"
+#include "builders/protobuf/proposal.hpp"
+#include "builders/protobuf/queries.hpp"
+#include "builders/protobuf/transaction.hpp"
 #include "builders/protobuf/transport_builder.hpp"
+#include "common/types.hpp"
 #include "framework/result_fixture.hpp"
 #include "module/shared_model/builders/protobuf/test_block_builder.hpp"
 #include "module/shared_model/builders/protobuf/test_empty_block_builder.hpp"
@@ -29,105 +35,127 @@
 using namespace shared_model;
 using namespace shared_model::proto;
 using namespace iroha::expected;
+using iroha::operator|;
 
 class TransportBuilderTest : public ::testing::Test {
  protected:
   void SetUp() override {
     created_time = iroha::time::now();
+    invalid_created_time = 123;
     account_id = "account@domain";
     quorum = 2;
     counter = 1048576;
     hash = std::string(32, '0');
     height = 1;
-
     invalid_account_id = "some#invalid?account@@id";
   }
 
-  auto createTransaction() {
+  //-------------------------------------Transaction-------------------------------------
+  template <typename TransactionBuilder>
+  auto getBaseTransactionBuilder() {
     return TestUnsignedTransactionBuilder()
         .createdTime(created_time)
+        .setAccountQuorum(account_id, quorum);
+  }
+
+  auto createTransaction() {
+    return getBaseTransactionBuilder<shared_model::proto::TransactionBuilder>()
         .creatorAccountId(account_id)
-        .setAccountQuorum(account_id, quorum)
         .build()
         .signAndAddSignature(keypair);
   }
 
   auto createInvalidTransaction() {
-    return TestUnsignedTransactionBuilder()
-        .createdTime(created_time)
+    return getBaseTransactionBuilder<TestTransactionBuilder>()
         .creatorAccountId(invalid_account_id)
-        .setAccountQuorum(account_id, quorum)
         .build()
         .signAndAddSignature(keypair);
   }
 
-  auto createQuery() {
-    return TestUnsignedQueryBuilder()
+  //-------------------------------------Query-------------------------------------
+  template <typename QueryBuilder>
+  auto getBaseQueryBuilder() {
+    return QueryBuilder()
         .createdTime(created_time)
-        .creatorAccountId(account_id)
         .getAccount(account_id)
-        .queryCounter(counter)
+        .queryCounter(counter);
+  }
+
+  auto createQuery() {
+    return getBaseQueryBuilder<shared_model::proto::QueryBuilder>()
+        .creatorAccountId(account_id)
         .build()
         .signAndAddSignature(keypair);
   }
 
   auto createInvalidQuery() {
-    return TestUnsignedQueryBuilder()
-        .createdTime(created_time)
+    return getBaseQueryBuilder<TestUnsignedQueryBuilder>()
         .creatorAccountId(invalid_account_id)
-        .getAccount(invalid_account_id)
-        .queryCounter(counter)
         .build()
         .signAndAddSignature(keypair);
   }
 
-  auto createBlock() {
-    return TestBlockBuilder()
+  //-------------------------------------Block-------------------------------------
+  template <typename BlockBuilder>
+  auto getBaseBlockBuilder() {
+    return BlockBuilder()
         .transactions(std::vector<Transaction>({createTransaction()}))
         .height(1)
-        .prevHash(crypto::Hash("asd"))
+        .prevHash(crypto::Hash("asd"));
+  }
+
+  auto createBlock() {
+    return getBaseBlockBuilder<shared_model::proto::UnsignedBlockBuilder>()
         .createdTime(created_time)
         .build();
   }
 
   auto createInvalidBlock() {
-    return TestBlockBuilder()
-        .transactions(std::vector<Transaction>({createTransaction()}))
-        .height(1)
-        .prevHash(crypto::Hash("asd"))
-        .createdTime(123)  // invalid time
+    return getBaseBlockBuilder<TestBlockBuilder>()
+        .createdTime(invalid_created_time)
         .build();
   }
 
+  //-------------------------------------EmptyBlock-------------------------------------
+  template <typename EmptyBlockBuilder>
+  auto getBaseEmptyBlockBuilder() {
+    return EmptyBlockBuilder().height(1).prevHash(crypto::Hash("asd"));
+  }
+
   auto createEmptyBlock() {
-    return TestEmptyBlockBuilder()
-        .height(1)
-        .prevHash(crypto::Hash("asd"))
+    return getBaseEmptyBlockBuilder<
+               shared_model::proto::UnsignedEmptyBlockBuilder>()
         .createdTime(created_time)
         .build();
   }
 
   auto createInvalidEmptyBlock() {
-    return TestEmptyBlockBuilder()
-        .height(1)
-        .prevHash(crypto::Hash("asd"))
-        .createdTime(123)  // invalid time
+    return getBaseEmptyBlockBuilder<TestEmptyBlockBuilder>()
+        .createdTime(invalid_created_time)
         .build();
   }
 
+  //-------------------------------------Proposal-------------------------------------
+  template <typename ProposalBuilder>
+  auto getBaseProposalBuilder() {
+    return ProposalBuilder().createdTime(created_time).height(1);
+  }
+
   auto createProposal() {
-    return TestProposalBuilder()
+    return getBaseProposalBuilder<shared_model::proto::ProposalBuilder>()
         .transactions(std::vector<Transaction>({createTransaction()}))
-        .height(1)
-        .createdTime(created_time)
         .build();
   }
 
   auto createInvalidProposal() {
-    return TestProposalBuilder()
-        .transactions(std::vector<Transaction>({createTransaction()}))
-        .height(1)
-        .createdTime(123)  // invalid time
+    return getBaseProposalBuilder<TestProposalBuilder>()
+        .transactions(std::vector<Transaction>({createInvalidTransaction()}))
+        .build();
+  }
+
+  auto createEmptyProposal() {
+    return getBaseProposalBuilder<TestProposalBuilder>()
+        .transactions(std::vector<Transaction>())
         .build();
   }
 
@@ -153,6 +181,7 @@ class TransportBuilderTest : public ::testing::Test {
 
  protected:
   decltype(iroha::time::now()) created_time;
+  decltype(created_time) invalid_created_time;
   std::string account_id;
   uint8_t quorum;
   uint64_t counter;
@@ -234,7 +263,6 @@ TEST_F(TransportBuilderTest, InvalidQueryCreationTest) {
 }
 
 //-------------------------------------BLOCK-------------------------------------
-
 /**
  * @given valid proto object of block
  * @when transport builder constructs model object from it
@@ -251,8 +279,20 @@ TEST_F(TransportBuilderTest, BlockCreationTest) {
       [](const Error<std::string> &) { FAIL(); });
 }
 
-//-------------------------------------PROPOSAL-------------------------------------
+/**
+ * @given invalid proto object of block
+ * @when transport builder constructs model object from it
+ * @then error is occured
+ */
+TEST_F(TransportBuilderTest, InvalidBlockCreationTest) {
+  auto orig_model = createInvalidBlock();
+  testTransport<decltype(orig_model), validation::DefaultBlockValidator>(
+      orig_model,
+      [](const Value<decltype(orig_model)>) { FAIL(); },
+      [](const Error<std::string> &) { SUCCEED(); });
+}
 
+//-------------------------------------PROPOSAL-------------------------------------
 /**
  * @given valid proto object of proposal
  * @when transport builder constructs model object from it
@@ -270,6 +310,20 @@ TEST_F(TransportBuilderTest, ProposalCreationTest) {
 }
 
 /**
+ * @given empty proto object of proposal
+ * @when transport builder constructs model object from it
+ * @then error occurred due to empty transactions
+ */
+TEST_F(TransportBuilderTest, EmptyProposalCreationTest) {
+  auto orig_model = createEmptyProposal();
+  testTransport<decltype(orig_model), validation::DefaultProposalValidator>(
+      orig_model,
+      [](const Value<decltype(orig_model)>) { FAIL(); },
+      [](const Error<std::string> &) { SUCCEED(); });
+}
+
+//-------------------------------------EmptyBlock-------------------------------------
+/**
  * @given valid proto object of empty block
  * @when transport builder constructs model object from it
  * @then original and built objects are equal
@@ -285,6 +339,7 @@ TEST_F(TransportBuilderTest, EmptyBlockCreationTest) {
       [](const Error<std::string> &) { FAIL(); });
 }
 
+//-------------------------------------BlockVariant-------------------------------------
 /**
  * @given Valid block protobuf object with no transactions
  * @when TransportBuilder tries to build BlockVariantType object
@@ -296,21 +351,20 @@ TEST_F(TransportBuilderTest, BlockVariantWithValidEmptyBlock) {
   interface::BlockVariantType orig_model =
       std::make_shared<decltype(emptyBlock)>(emptyBlock.getTransport());
 
-  TransportBuilder<interface::BlockVariantType,
-                   validation::DefaultAnyBlockValidator>()
-      .build(emptyBlock.getTransport())
-      .match(
-          [&emptyBlock](const Value<decltype(orig_model)> &model) {
-            iroha::visit_in_place(
-                model.value,
-                [&emptyBlock](
-                    const std::shared_ptr<shared_model::interface::EmptyBlock>
-                        block) { EXPECT_EQ(emptyBlock, *block); },
-                [](const std::shared_ptr<shared_model::interface::Block>) {
-                  FAIL();
-                });
-          },
-          [](const Error<std::string> &) { FAIL(); });
+  auto val = framework::expected::val(
+      TransportBuilder<interface::BlockVariantType,
+                       validation::DefaultAnyBlockValidator>()
+          .build(emptyBlock.getTransport()));
+  ASSERT_TRUE(val);
+  val | [&emptyBlock](auto &block_variant) {
+    iroha::visit_in_place(
+        block_variant.value,
+        [&emptyBlock](
+            const std::shared_ptr<shared_model::interface::EmptyBlock> block) {
+          EXPECT_EQ(emptyBlock, *block);
+        },
+        [](const std::shared_ptr<shared_model::interface::Block>) { FAIL(); });
+  };
 }
 
 /**
@@ -321,10 +375,11 @@ TEST_F(TransportBuilderTest, BlockVariantWithValidEmptyBlock) {
 TEST_F(TransportBuilderTest, BlockVariantWithInvalidEmptyBlock) {
   auto emptyBlock = createInvalidEmptyBlock();
 
-  framework::expected::err(
+  auto error = framework::expected::err(
       TransportBuilder<interface::BlockVariantType,
                        validation::DefaultAnyBlockValidator>()
           .build(emptyBlock.getTransport()));
+  ASSERT_TRUE(error);
 }
 
 /**
@@ -337,21 +392,21 @@ TEST_F(TransportBuilderTest, BlockVariantWithValidBlock) {
   auto block = createBlock();
   interface::BlockVariantType orig_model =
       std::make_shared<decltype(block)>(block.getTransport());
-  TransportBuilder<decltype(orig_model), validation::DefaultAnyBlockValidator>()
-      .build(block.getTransport())
-      .match(
-          [&block](const Value<decltype(orig_model)> &model) {
-            iroha::visit_in_place(
-                model.value,
-                [](const std::shared_ptr<shared_model::interface::EmptyBlock>) {
-                  FAIL();
-                },
-                [&block](const std::shared_ptr<shared_model::interface::Block>
-                             created_block) {
-                  EXPECT_EQ(block, *created_block);
-                });
-          },
-          [](const Error<std::string> &) { FAIL(); });
+  auto val = framework::expected::val(
+      TransportBuilder<decltype(orig_model),
+                       validation::DefaultAnyBlockValidator>()
+          .build(block.getTransport()));
+
+  ASSERT_TRUE(val);
+  val | [&block](auto &block_variant) {
+    iroha::visit_in_place(
+        block_variant.value,
+        [](std::shared_ptr<shared_model::interface::EmptyBlock>) { FAIL(); },
+        [&block](
+            std::shared_ptr<shared_model::interface::Block> created_block) {
+          EXPECT_EQ(block, *created_block);
+        });
+  };
 }
 
 /**
@@ -362,8 +417,9 @@ TEST_F(TransportBuilderTest, BlockVariantWithValidBlock) {
 TEST_F(TransportBuilderTest, BlockVariantWithInvalidBlock) {
   auto block = createInvalidBlock();
 
-  framework::expected::err(
+  auto error = framework::expected::err(
       TransportBuilder<interface::BlockVariantType,
                        validation::DefaultAnyBlockValidator>()
           .build(block.getTransport()));
+  ASSERT_TRUE(error);
 }
