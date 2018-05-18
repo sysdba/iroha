@@ -44,7 +44,16 @@ namespace shared_model {
      public:
       template <class ProposalType>
       explicit ProtoProposalTemplate(ProposalType &&proposal)
-          : CopyableProtoType(std::forward<ProposalType>(proposal)) {}
+          : CopyableProtoType(std::forward<ProposalType>(proposal)),
+            transactions_([this] {
+              return boost::accumulate(
+                  CopyableProtoType::proto_->transactions(),
+                  TransactionContainer{},
+                  [](auto &&vec, const auto &tx) -> decltype(auto) {
+                    vec.emplace_back(new proto::Transaction(tx));
+                    return std::forward<decltype(vec)>(vec);
+                  });
+            }()) {}
 
       ProtoProposalTemplate(const ProtoProposalTemplate<ParentType> &o)
           : ProtoProposalTemplate(o.proto_) {}
@@ -53,7 +62,7 @@ namespace shared_model {
           : ProtoProposalTemplate(std::move(o.proto_)) {}
 
       const TransactionContainer &transactions() const override {
-        return *transactions_;
+        return transactions_;
       }
 
       interface::types::TimestampType createdTime() const override {
@@ -65,18 +74,7 @@ namespace shared_model {
       }
 
      private:
-      // lazy
-      template <typename T>
-      using Lazy = detail::LazyInitializer<T>;
-
-      const Lazy<TransactionContainer> transactions_{[this] {
-        return boost::accumulate(CopyableProtoType::proto_->transactions(),
-                                 TransactionContainer{},
-                                 [](auto &&vec, const auto &tx) {
-                                   vec.emplace_back(new proto::Transaction(tx));
-                                   return std::forward<decltype(vec)>(vec);
-                                 });
-      }};
+      const TransactionContainer transactions_;
     };
 
   }  // namespace proto
