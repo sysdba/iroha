@@ -23,9 +23,6 @@ namespace shared_model {
     class EmptyBlock final : public CopyableProto<interface::EmptyBlock,
                                                   iroha::protocol::Block,
                                                   EmptyBlock> {
-      template <class T>
-      using w = detail::PolymorphicWrapper<T>;
-
      public:
       template <class BlockType>
       explicit EmptyBlock(BlockType &&block)

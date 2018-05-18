@@ -47,7 +47,7 @@ namespace iroha {
       notifier_.get_observable().subscribe(
           verified_proposal_subscription_,
           [this](
-              const std::shared_ptr<shared_model::interface::VerifiedProposal>
+              std::shared_ptr<shared_model::interface::VerifiedProposal>
                   verified_proposal) {
             this->process_verified_proposal(*verified_proposal);
           });

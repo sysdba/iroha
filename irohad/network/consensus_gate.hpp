@@ -23,7 +23,6 @@
 namespace shared_model {
   namespace interface {
     class Block;
-    class EmptyBlock;
   }  // namespace interface
 }  // namespace shared_model
 
