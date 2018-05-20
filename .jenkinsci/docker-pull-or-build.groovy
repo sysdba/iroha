@@ -24,6 +24,7 @@ def dockerPullOrUpdate(imageName, currentDockerfileURL, previousDockerfileURL, r
     previousDockerfileURL = currentDockerfileURL
   }
   def commit = sh(script: "echo ${GIT_LOCAL_BRANCH} | md5sum | cut -c 1-8", returnStdout: true).trim()
+  def iC = null
   if (remoteFilesDiffer(currentDockerfileURL, previousDockerfileURL)) {
     // Dockerfile has been changed compared to the previous commit
     // Worst case scenario. We cannot count on the local cache
@@ -35,9 +36,11 @@ def dockerPullOrUpdate(imageName, currentDockerfileURL, previousDockerfileURL, r
     // first commit in this branch or Dockerfile modified
     if (remoteFilesDiffer(currentDockerfileURL, referenceDockerfileURL)) {
       // if we're lucky to build on the same agent, image will be built using cache
-      // upload pre-built image for cache
       if ( env.NODE_NAME.contains('x86_64') ) {
-        sh "docker load -i ${JENKINS_DOCKER_IMAGE_DIR}/${dockerImageFile} || true"
+        def testExitCode = sh(script: "docker load -i ${JENKINS_DOCKER_IMAGE_DIR}/${dockerImageFile}", returnStatus: true)
+        if (testExitCode != 0) {
+          sh "echo 'unable to load pre-built image for cache'"
+        }
       }
       iC = docker.build("${DOCKER_REGISTRY_BASENAME}:${commit}-${BUILD_NUMBER}", "$buildOptions -f /tmp/${env.GIT_COMMIT}/f1 /tmp/${env.GIT_COMMIT}")
     }
