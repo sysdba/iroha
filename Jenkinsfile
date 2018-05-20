@@ -486,7 +486,7 @@ pipeline {
      // TODO: send email-notifications logic 
     always {
       script {
-        GIT_AUTHOR_EMAIL = sh(script: """echo `git --no-pager show -s --format='%ae' ${env.GIT_COMMIT}`""", returnStdout: true).trim()
+        GIT_AUTHOR_EMAIL = sh(script: """git --no-pager show -s --format='%ae' ${env.GIT_COMMIT}""", returnStdout: true).trim()
       }
       emailext( subject: '$DEFAULT_SUBJECT',
                 body: '$DEFAULT_CONTENT',
