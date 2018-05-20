@@ -52,6 +52,7 @@ def dockerPullOrUpdate(imageName, currentDockerfileURL, previousDockerfileURL, r
         }
         else {
           iC = docker.image("${DOCKER_REGISTRY_BASENAME}:${imageName}")
+          iC.pull()
         }
       }
       else {
