@@ -24,6 +24,8 @@ def dockerPullOrUpdate(imageName, currentDockerfileURL, previousDockerfileURL, r
     previousDockerfileURL = currentDockerfileURL
   }
   def commit = sh(script: "echo ${GIT_LOCAL_BRANCH} | md5sum | cut -c 1-8", returnStdout: true).trim()
+  dockerImageFile = sh(script: "echo ${GIT_LOCAL_BRANCH} | md5sum | cut -c 1-8", returnStdout: true).trim()
+  
   if (remoteFilesDiffer(currentDockerfileURL, previousDockerfileURL)) {
     // Dockerfile has been changed compared to the previous commit
     // Worst case scenario. We cannot count on the local cache
@@ -71,6 +73,11 @@ def dockerPullOrUpdate(imageName, currentDockerfileURL, previousDockerfileURL, r
     docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
       iC.push(imageName)
     }
+  }
+  // save results to the file
+  if ( env.NODE_NAME.contains('x86_64') ) {
+    dockerAgentImage = iC.imageName()
+    sh "docker save -o /tmp/docker/${env.dockerImageFile} ${env.dockerAgentImage}"
   }
   return iC
 }

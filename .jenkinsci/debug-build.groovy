@@ -19,7 +19,6 @@ def doDebugBuild(coverageEnabled=false) {
   }
   if ( env.NODE_NAME.contains('x86_64')) {
     parallelism = 8
-    dockerImageFile = sh(script: "echo ${GIT_LOCAL_BRANCH} | md5sum | cut -c 1-8", returnStdout: true).trim()
   }
   // count docker image file in case there could be pre-build image saved in file
 
@@ -28,7 +27,6 @@ def doDebugBuild(coverageEnabled=false) {
                                            "${env.GIT_RAW_BASE_URL}/${previousCommit}/docker/develop/Dockerfile",
                                            "${env.GIT_RAW_BASE_URL}/develop/docker/develop/Dockerfile",
                                            ['PARALLELISM': parallelism])
-  dockerAgentImage = iC.imageName()
   if (GIT_LOCAL_BRANCH == 'develop' && manifest.manifestSupportEnabled()) {
     manifest.manifestCreate("${DOCKER_REGISTRY_BASENAME}:develop-build",
       ["${DOCKER_REGISTRY_BASENAME}:x86_64-develop-build",
