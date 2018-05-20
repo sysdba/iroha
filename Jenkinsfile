@@ -490,8 +490,8 @@ pipeline {
       }
       emailext( subject: '$DEFAULT_SUBJECT',
                 body: '$DEFAULT_CONTENT',
-                attachLog: true
-                compressLog: true
+                attachLog: true,
+                compressLog: true,
                 to: "${GIT_AUTHOR_EMAIL}"
       )
       // clear workspace on agents and 
