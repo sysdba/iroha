@@ -115,7 +115,7 @@ def doTestStep(testList) {
       + " --network=${env.IROHA_NETWORK}"
       + " -v ${CCACHE_DIR}:${CCACHE_DIR}"
       + " -v /tmp/${GIT_COMMIT}-${BUILD_NUMBER}:/tmp/${GIT_COMMIT}") {
-        def testExitCode = sh(script: 'cd build/ && CTEST_OUTPUT_ON_FAILURE=1 ctest -R "${testList}"', returnStatus: true)
+        def testExitCode = sh(script: 'cd build/ && CTEST_OUTPUT_ON_FAILURE=1 ctest -L ${testList}', returnStatus: true)
         if (testExitCode != 0) {
           currentBuild.result = "UNSTABLE"
         }
