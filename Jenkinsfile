@@ -215,8 +215,9 @@ pipeline {
           agent { label 'x86_64_aws_test' }
           steps {
             script {
+              def selector = load ".jenkinsci/test-launcher.groovy"
               def tests = load ".jenkinsci/debug-build.groovy"
-              tests.doTestStep()  //TODO: pass tests list
+              tests.doTestStep(selector.chooseTestType())
             }
           }
         }
@@ -228,8 +229,9 @@ pipeline {
           agent { label 'armv7' }
           steps {
             script {
+              def selector = load ".jenkinsci/test-launcher.groovy"
               def tests = load ".jenkinsci/debug-build.groovy"
-              tests.doTestStep()  //TODO: pass tests list
+              tests.doTestStep(selector.chooseTestType())
             }
           }
         }
@@ -241,8 +243,9 @@ pipeline {
           agent { label 'armv8' }
           steps {
             script {
+              def selector = load ".jenkinsci/test-launcher.groovy"
               def tests = load ".jenkinsci/debug-build.groovy"
-              tests.doTestStep()  //TODO: pass tests list
+              tests.doTestStep(selector.chooseTestType())
             }
           }
         }
@@ -254,8 +257,9 @@ pipeline {
           agent { label 'mac' }
           steps {
             script {
+              def selector = load ".jenkinsci/test-launcher.groovy"
               def tests = load ".jenkinsci/mac-debug-build.groovy"
-              tests.doTestStep()  //TODO: pass tests list
+              tests.doTestStep(selector.chooseTestType())
             }
           }
         }

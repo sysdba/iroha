@@ -95,7 +95,7 @@ def doPreCoverageStep() {
   }
 }
 
-def doTestStep() {
+def doTestStep(testList) {
   if ( env.NODE_NAME.contains('x86_64') ) {
     sh "docker load -i ${JENKINS_DOCKER_IMAGE_DIR}/${dockerImageFile}"
   }
@@ -115,7 +115,7 @@ def doTestStep() {
       + " --network=${env.IROHA_NETWORK}"
       + " -v ${CCACHE_DIR}:${CCACHE_DIR}"
       + " -v /tmp/${GIT_COMMIT}-${BUILD_NUMBER}:/tmp/${GIT_COMMIT}") {
-        def testExitCode = sh(script: 'cd build/ && CTEST_OUTPUT_ON_FAILURE=1 ctest -L "module_*"', returnStatus: true)
+        def testExitCode = sh(script: 'cd build/ && CTEST_OUTPUT_ON_FAILURE=1 ctest -L ${testList}', returnStatus: true)
         if (testExitCode != 0) {
           currentBuild.result = "UNSTABLE"
         }
