@@ -24,7 +24,7 @@ def dockerPullOrUpdate(imageName, currentDockerfileURL, previousDockerfileURL, r
     previousDockerfileURL = currentDockerfileURL
   }
   def commit = sh(script: "echo ${GIT_LOCAL_BRANCH} | md5sum | cut -c 1-8", returnStdout: true).trim()
-  dockerImageFile = sh(script: "echo ${GIT_LOCAL_BRANCH} | md5sum | cut -c 1-8", returnStdout: true).trim()
+  dockerImageFile = commit
   
   if (remoteFilesDiffer(currentDockerfileURL, previousDockerfileURL)) {
     // Dockerfile has been changed compared to the previous commit
@@ -38,7 +38,7 @@ def dockerPullOrUpdate(imageName, currentDockerfileURL, previousDockerfileURL, r
     if (remoteFilesDiffer(currentDockerfileURL, referenceDockerfileURL)) {
       // if we're lucky to build on the same agent, image will be built using cache
       if ( env.NODE_NAME.contains('x86_64') ) {
-        def testExitCode = sh(script: "docker load -i ${JENKINS_DOCKER_IMAGE_DIR}/${env.dockerImageFile}", returnStatus: true)
+        def testExitCode = sh(script: "docker load -i ${JENKINS_DOCKER_IMAGE_DIR}/${dockerImageFile}", returnStatus: true)
         if (testExitCode != 0) {
           sh "echo 'unable to load pre-built image for cache'"
         }
@@ -48,7 +48,7 @@ def dockerPullOrUpdate(imageName, currentDockerfileURL, previousDockerfileURL, r
     else {
       // try pulling image from Dockerhub, probably image is already there
       if ( env.NODE_NAME.contains('x86_64') ) {
-        def testExitCode = sh(script: "docker load -i ${JENKINS_DOCKER_IMAGE_DIR}/${env.dockerImageFile}", returnStatus: true)
+        def testExitCode = sh(script: "docker load -i ${JENKINS_DOCKER_IMAGE_DIR}/${dockerImageFile}", returnStatus: true)
         if (testExitCode != 0) {
           // file with docker image was not found. Build it
           iC = docker.build("${DOCKER_REGISTRY_BASENAME}:${commit}-${BUILD_NUMBER}", "$buildOptions --no-cache -f /tmp/${env.GIT_COMMIT}/f1 /tmp/${env.GIT_COMMIT}")  
@@ -79,7 +79,7 @@ def dockerPullOrUpdate(imageName, currentDockerfileURL, previousDockerfileURL, r
   // save results to the file
   if ( env.NODE_NAME.contains('x86_64') ) {
     dockerAgentImage = iC.imageName()
-    sh "docker save -o /tmp/docker/${env.dockerImageFile} ${env.dockerAgentImage}"
+    sh "docker save -o /tmp/docker/${dockerImageFile} ${dockerAgentImage}"
   }
   return iC
 }
