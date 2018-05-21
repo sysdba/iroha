@@ -10,7 +10,7 @@ pipeline {
     stage ('all') {
       parallel {
         stage ('checkout') {
-          agent { label 'linux && x86_64' }
+          agent { label 'x86_64_aws_cov' }
           steps {
             script {
               if (env.CHANGE_ID) {
