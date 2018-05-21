@@ -13,13 +13,15 @@ pipeline {
           agent { label 'linux && x86_64' }
           steps {
             script {
-              checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches:
+              if (env.CHANGE_ID) {
+                checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches:
                   [[name: "${CHANGE_BRANCH}"]], doGenerateSubmoduleConfigurations: false, extensions:
                   [[$class: 'PreBuildMerge', options: [fastForwardMode: 'FF_ONLY', mergeRemote: 'origin',
                   mergeStrategy: 'default', mergeTarget: "${CHANGE_TARGET}"]], [$class: 'LocalBranch'],
                   [$class: 'CleanCheckout'], [$class: 'PruneStaleBranch'], [$class: 'UserIdentity',
                   email: 'jenkins@soramitsu.co.jp', name: 'jenkins']], submoduleCfg: [], userRemoteConfigs:
                   [[credentialsId: 'sorabot-github-user', url: 'https://github.com/hyperledger/iroha.git']]]
+              }
               sh('echo This commit is mergeable')
             }
           }
