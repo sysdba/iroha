@@ -8,7 +8,7 @@
 // - "system_" for system tests, respectively.
 
 def chooseTestType() {
-	return "module_*"
+	return "module*"
 }
 
 return this
