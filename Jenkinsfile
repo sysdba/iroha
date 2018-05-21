@@ -88,7 +88,7 @@ pipeline {
               if (params.BUILD_TYPE == 'Debug') {
                 def debugBuild = load ".jenkinsci/debug-build.groovy"
                 def coverage = load ".jenkinsci/selected-branches-coverage.groovy"
-                // debugBuild.doDebugBuild(coverage.selectedBranchesCoverage())
+                debugBuild.doDebugBuild(coverage.selectedBranchesCoverage())
               }
               else {
                 def releaseBuild = load ".jenkinsci/release-build.groovy"
