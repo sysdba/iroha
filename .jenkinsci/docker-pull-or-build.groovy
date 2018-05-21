@@ -38,7 +38,7 @@ def dockerPullOrUpdate(imageName, currentDockerfileURL, previousDockerfileURL, r
     if (remoteFilesDiffer(currentDockerfileURL, referenceDockerfileURL)) {
       // if we're lucky to build on the same agent, image will be built using cache
       if ( env.NODE_NAME.contains('x86_64') ) {
-        def testExitCode = sh(script: "docker load -i ${JENKINS_DOCKER_IMAGE_DIR}/${dockerImageFile}", returnStatus: true)
+        def testExitCode = sh(script: "docker load -i ${JENKINS_DOCKER_IMAGE_DIR}/${env.dockerImageFile}", returnStatus: true)
         if (testExitCode != 0) {
           sh "echo 'unable to load pre-built image for cache'"
         }
@@ -48,11 +48,13 @@ def dockerPullOrUpdate(imageName, currentDockerfileURL, previousDockerfileURL, r
     else {
       // try pulling image from Dockerhub, probably image is already there
       if ( env.NODE_NAME.contains('x86_64') ) {
-        def testExitCode = sh(script: "docker load -i ${JENKINS_DOCKER_IMAGE_DIR}/${dockerImageFile}", returnStatus: true)
+        def testExitCode = sh(script: "docker load -i ${JENKINS_DOCKER_IMAGE_DIR}/${env.dockerImageFile}", returnStatus: true)
         if (testExitCode != 0) {
+          // file with docker image was not found. Build it
           iC = docker.build("${DOCKER_REGISTRY_BASENAME}:${commit}-${BUILD_NUMBER}", "$buildOptions --no-cache -f /tmp/${env.GIT_COMMIT}/f1 /tmp/${env.GIT_COMMIT}")  
         }
         else {
+          // file with docker image was found --> update from dockerhub (in case it is develop-build)
           iC = docker.image("${DOCKER_REGISTRY_BASENAME}:${imageName}")
           iC.pull()
         }
