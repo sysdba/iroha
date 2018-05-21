@@ -3,8 +3,8 @@
 def doJavaBindings(os, buildType=Release) {
   def currentPath = sh(script: "pwd", returnStdout: true).trim()
   def commit = env.GIT_COMMIT
-  def artifactsPath = sprintf('%1$s/java-bindings-%2$s-%3$s-%4$s.zip',
-    [currentPath, buildType, sh(script: 'date "+%Y%m%d"', returnStdout: true).trim(), commit.substring(0,6)])
+  def artifactsPath = sprintf('%1$s/java-bindings-%2$s-%3$s-%4$s-%5$s.zip',
+    [currentPath, buildType, os, sh(script: 'date "+%Y%m%d"', returnStdout: true).trim(), commit.substring(0,6)])
   def cmakeOptions = ""
   if (os == 'windows') {
     sh "mkdir -p /tmp/${env.GIT_COMMIT}/bindings-artifact"
@@ -19,7 +19,9 @@ def doJavaBindings(os, buildType=Release) {
       ${cmakeOptions}
   """
   sh "cmake --build build --target irohajava --config ${buildType}"
-  //sh "cd build; ctest -R java -C ${buildType} --output-on-failure"
+  // TODO: Java tests never finishes on Windows Server 2016. Disable until issue is resolved
+  // https://github.com/hyperledger/iroha/issues/1342
+  // sh "cd build; ctest -R java -C ${buildType} --output-on-failure"
   sh "zip -j $artifactsPath build/bindings/*.java build/bindings/*.dll build/bindings/libirohajava.so"
   if (os == 'windows') {
     sh "cp $artifactsPath /tmp/${env.GIT_COMMIT}/bindings-artifact"
@@ -34,8 +36,8 @@ def doPythonBindings(os, buildType=Release) {
   def currentPath = sh(script: "pwd", returnStdout: true).trim()
   def commit = env.GIT_COMMIT
   def supportPython2 = "OFF"
-  def artifactsPath = sprintf('%1$s/python-bindings-%2$s-%3$s-%4$s-%5$s.zip',
-    [currentPath, env.PBVersion, buildType, sh(script: 'date "+%Y%m%d"', returnStdout: true).trim(), commit.substring(0,6)])
+  def artifactsPath = sprintf('%1$s/python-bindings-%2$s-%3$s-%4$s-%5$s-%6$s.zip',
+    [currentPath, env.PBVersion, buildType, os, sh(script: 'date "+%Y%m%d"', returnStdout: true).trim(), commit.substring(0,6)])
   def cmakeOptions = ""
   if (os == 'windows') {
     sh "mkdir -p /tmp/${env.GIT_COMMIT}/bindings-artifact"
@@ -96,7 +98,7 @@ def doPythonBindings(os, buildType=Release) {
 def doAndroidBindings(abiVersion) {
   def currentPath = sh(script: "pwd", returnStdout: true).trim()
   def commit = env.GIT_COMMIT
-  def artifactsPath = sprintf('%1$s/android-bindings-%2$s-%3$s-%4$s-%5$s-%6$s.zip', 
+  def artifactsPath = sprintf('%1$s/android-bindings-%2$s-%3$s-%4$s-%5$s-%6$s.zip',
     [currentPath, "\$PLATFORM", abiVersion, "\$BUILD_TYPE_A", sh(script: 'date "+%Y%m%d"', returnStdout: true).trim(), commit.substring(0,6)])
   sh """
     (cd /iroha; git init; git remote add origin https://github.com/hyperledger/iroha.git; \
