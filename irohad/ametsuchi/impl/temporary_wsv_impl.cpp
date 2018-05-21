@@ -46,7 +46,7 @@ namespace iroha {
       command_executor_->setCreatorAccountId(tx_creator);
       command_validator_->setCreatorAccountId(tx_creator);
       auto execute_command = [this, &tx_creator](auto command) {
-        auto account = wsv_->getAccount(tx_creator).value();
+//        auto account = wsv_->getAccount(tx_creator).value();
         if (not boost::apply_visitor(*command_validator_, command->get())) {
           return false;
         }
