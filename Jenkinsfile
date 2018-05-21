@@ -64,7 +64,7 @@ pipeline {
 
   agent any
   stages {
-    stage ('Stop same job builds') {
+    stage ('Pre-build') {
       agent { label 'master' }
       steps {
         script {
@@ -140,7 +140,13 @@ pipeline {
         stage('MacOS'){
           when {
             beforeAgent true
-            expression { return params.MacOS }
+            anyOf {
+              allOf {
+                expression { env.CHANGE_ID != null }
+                expression { GIT_PREVIOUS_COMMIT == null } // on the open PR
+              }
+              expression { return params.MacOS }
+            }
           }
           agent { label 'mac' }
           steps {

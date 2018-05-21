@@ -97,6 +97,9 @@ def doTestStep(testList) {
   if ( env.NODE_NAME.contains('x86_64') ) {
     sh "docker load -i ${JENKINS_DOCKER_IMAGE_DIR}/${dockerImageFile}"
   }
+  // TODO: remove next debug command
+  sh "echo ${testList}"
+  sh "echo ${env.testList}"
   def iC = docker.image("${dockerAgentImage}")
   sh "docker network create ${env.IROHA_NETWORK}"
 

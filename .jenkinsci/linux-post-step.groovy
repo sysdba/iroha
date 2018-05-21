@@ -4,7 +4,7 @@ def linuxPostStep() {
       if (currentBuild.currentResult == "SUCCESS" && GIT_LOCAL_BRANCH ==~ /(master|develop)/) {
         def artifacts = load ".jenkinsci/artifacts.groovy"
         def commit = env.GIT_COMMIT
-        if ( 'mac' in env.NODE_NAME ) {
+        if ( env.NODE_NAME.contains('mac') ) {
           def commit = env.GIT_COMMIT
           filePaths = [ '\$(pwd)/build/*.tar.gz' ]
           artifacts.uploadArtifacts(filePaths, sprintf('/iroha/macos/%1$s-%2$s-%3$s', [GIT_LOCAL_BRANCH, sh(script: 'date "+%Y%m%d"', returnStdout: true).trim(), commit.substring(0,6)]))
@@ -18,8 +18,7 @@ def linuxPostStep() {
       }
     }
     finally {
-      if ( 'mac' in env.NODE_NAME )
-      {
+      if ( env.NODE_NAME.contains('mac') ) {
         sh """
           pg_ctl -D /var/jenkins/${GIT_COMMIT}-${BUILD_NUMBER}/ stop && \
           rm -rf /var/jenkins/${GIT_COMMIT}-${BUILD_NUMBER}/
@@ -31,6 +30,7 @@ def linuxPostStep() {
       }
       cleanWs()
     }
+  }
 }
 
 return this
