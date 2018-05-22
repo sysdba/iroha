@@ -24,6 +24,7 @@ properties([parameters([
   booleanParam(defaultValue: false, description: '', name: 'ARMv8'),
   booleanParam(defaultValue: false, description: '', name: 'MacOS'),
   booleanParam(defaultValue: false, description: 'Whether it is a triggered build', name: 'Nightly'),
+  booleanParam(defaultValue: false, description: 'Whether to merge this PR to target after success build', name: 'Merge_PR'),
   booleanParam(defaultValue: false, description: 'Whether to force building coverage', name: 'Coverage'),
   booleanParam(defaultValue: false, description: 'Whether build docs or not', name: 'Doxygen'),
   booleanParam(defaultValue: false, description: 'Whether build Java bindings', name: 'JavaBindings'),
@@ -36,6 +37,13 @@ properties([parameters([
   choice(choices: 'Release\nDebug', description: 'Android Bindings Build Type', name: 'ABBuildType'),
   choice(choices: 'arm64-v8a\narmeabi-v7a\narmeabi\nx86_64\nx86', description: 'Android Bindings Platform', name: 'ABPlatform'),
   string(defaultValue: '4', description: 'How much parallelism should we exploit. "4" is optimal for machines with modest amount of memory and at least 4 cores', name: 'PARALLELISM')])])
+
+def debugBuild = load ".jenkinsci/debug-build.groovy"
+def macDebugBuild = load ".jenkinsci/mac-debug-build.groovy"
+def releaseBuild = load ".jenkinsci/release-build.groovy"
+def macReleaseBuild = load ".jenkinsci/mac-release-build.groovy"
+def coverage = load ".jenkinsci/selected-branches-coverage.groovy"
+def testSelect = load ".jenkinsci/test-launcher.groovy"
 
 pipeline {
   environment {
@@ -62,7 +70,7 @@ pipeline {
   options {
     buildDiscarder(logRotator(numToKeepStr: '20'))
   }
-
+  
   agent any
   stages {
     stage ('Pre-build') {
@@ -87,12 +95,9 @@ pipeline {
           steps {
             script {
               if (params.BUILD_TYPE == 'Debug') {
-                def debugBuild = load ".jenkinsci/debug-build.groovy"
-                def coverage = load ".jenkinsci/selected-branches-coverage.groovy"
                 debugBuild.doDebugBuild(coverage.selectedBranchesCoverage())
               }
               else {
-                def releaseBuild = load ".jenkinsci/release-build.groovy"
                 releaseBuild.doReleaseBuild()
               }
             }
@@ -107,12 +112,9 @@ pipeline {
           steps {
             script {
               if (params.BUILD_TYPE == 'Debug') {
-                def debugBuild = load ".jenkinsci/debug-build.groovy"
-                def coverage = load ".jenkinsci/selected-branches-coverage.groovy"
                 debugBuild.doDebugBuild( (!params.Linux && !params.MacOS && !params.ARMv8) ? coverage.selectedBranchesCoverage() : false )
               }
               else {
-                def releaseBuild = load ".jenkinsci/release-build.groovy"
                 releaseBuild.doReleaseBuild()
               }
             }
@@ -127,18 +129,15 @@ pipeline {
           steps {
             script {
               if (params.BUILD_TYPE == 'Debug') {
-                def debugBuild = load ".jenkinsci/debug-build.groovy"
-                def coverage = load ".jenkinsci/selected-branches-coverage.groovy"
                 debugBuild.doDebugBuild( (!params.Linux && !params.MacOS) ? coverage.selectedBranchesCoverage() : false )
               }
               else {
-                def releaseBuild = load ".jenkinsci/release-build.groovy"
                 releaseBuild.doReleaseBuild()
               }
             }
           }
         }
-        stage('MacOS'){
+        stage('MacOS') {
           when {
             beforeAgent true
             anyOf {
@@ -153,13 +152,10 @@ pipeline {
           steps {
             script {
               if (params.BUILD_TYPE == 'Debug') {
-                def debugBuild = load ".jenkinsci/mac-debug-build.groovy"
-                def coverage = load ".jenkinsci/selected-branches-coverage.groovy"
-                debugBuild.doDebugBuild( !params.Linux ? coverage.selectedBranchesCoverage() : false )
+                macDebugBuild.doDebugBuild( !params.Linux ? coverage.selectedBranchesCoverage() : false )
               }
               else {
-                def releaseBuild = load ".jenkinsci/mac-release-build.groovy"
-                releaseBuild.doReleaseBuild()
+                macReleaseBuild.doReleaseBuild()
               }
             }
           }
@@ -223,9 +219,7 @@ pipeline {
           agent { label 'x86_64_aws_test' }
           steps {
             script {
-              
-              def tests = load ".jenkinsci/debug-build.groovy"
-              tests.doTestStep()
+              debugBuild.doTestStep(testSelect.chooseTestType())
             }
           }
         }
@@ -237,9 +231,7 @@ pipeline {
           agent { label 'armv7' }
           steps {
             script {
-              def selector = load ".jenkinsci/test-launcher.groovy"
-              def tests = load ".jenkinsci/debug-build.groovy"
-              tests.doTestStep()
+              debugBuild.doTestStep(testSelect.chooseTestType())
             }
           }
         }
@@ -251,9 +243,7 @@ pipeline {
           agent { label 'armv8' }
           steps {
             script {
-              def selector = load ".jenkinsci/test-launcher.groovy"
-              def tests = load ".jenkinsci/debug-build.groovy"
-              tests.doTestStep()
+              debugBuild.doTestStep(testSelect.chooseTestType())
             }
           }
         }
@@ -265,9 +255,7 @@ pipeline {
           agent { label 'mac' }
           steps {
             script {
-              def selector = load ".jenkinsci/test-launcher.groovy"
-              def tests = load ".jenkinsci/mac-debug-build.groovy"
-              tests.doTestStep()
+              macDebugBuild.doTestStep(testSelect.chooseTestType())
             }
           }
         }
@@ -344,48 +332,6 @@ pipeline {
               }
             }
           }
-        }
-      }
-    }
-    stage ('Pre-merge request') {
-      when {
-        allOf {
-          expression { changeRequest }
-          expression { GIT_PREVIOUS_COMMIT != null } // on the commit to PR
-        }
-      }
-      steps {
-        script {
-          def selector = load ".jenkinsci/test-launcher.groovy"
-          def tests = load ".jenkinsci/debug-build.groovy"
-          tests.doTestStep(selector.chooseTestType())
-        }
-      }
-    }
-    stage ('Pre-merge build') {
-      when {
-        expression {  }
-      }
-      steps {
-        script {
-          def selector = load ".jenkinsci/test-launcher.groovy"
-          def tests = load ".jenkinsci/debug-build.groovy"
-          tests.doTestStep(selector.chooseTestType())
-        }
-      }
-    }
-    stage ('Pre-merge test') {
-      when {
-        allOf {
-          expression { changeRequest }
-          expression { GIT_PREVIOUS_COMMIT != null } // on the commit to PR
-        }
-      }
-      steps {
-        script {
-          def selector = load ".jenkinsci/test-launcher.groovy"
-          def tests = load ".jenkinsci/debug-build.groovy"
-          tests.doTestStep(selector.chooseTestType())
         }
       }
     }
@@ -527,6 +473,98 @@ pipeline {
                 }
               }
             }
+          }
+        }
+      }
+    }
+    stage ('Pre-merge request') {
+      when {
+        allOf {
+          expression { changeRequest }
+          expression { GIT_PREVIOUS_COMMIT != null } // on the commit to PR
+        }
+      }
+      steps {
+        script {
+          if ( ! params.Merge_PR ) {
+            input {
+              message "Merge current Pull Request?"
+              ok "Merge"
+              parameters {
+                booleanParam(name: 'MERGE', defaultValue: 'false', description: 'Whether to merge PR?')
+              }
+            }
+            if ( params.MERGE ) {
+              params.Merge_PR = true
+            }
+          }
+          if ( params.Merge_PR ) {
+            params.ARMv7 = !params.ARMv7
+            params.ARMv8 = !params.ARMv8
+            params.Linux = !params.Linux
+            params.MacOS = !params.MacOS
+          }
+        }
+      }
+    }
+    stage ('Pre-merge build') {
+      when { expression { params.MERGE_PR } }
+      parallel {
+        stage ('Linux') {
+          when {
+            beforeAgent true
+            expression { return params.Linux }
+          }
+          agent { label 'x86_64_aws_build' }
+          steps { script { debugBuild.doDebugBuild(coverageEnabled: true) } }
+        }
+        stage('ARMv7') {
+          when {
+            beforeAgent true
+            expression { return params.ARMv7 }
+          }
+          agent { label 'armv7' }
+          steps { script { debugBuild.doDebugBuild( (!params.Linux && !params.MacOS && !params.ARMv8 && !params.Coverage) ? true : false ) } }
+        }
+        stage('ARMv8') {
+          when {
+            beforeAgent true
+            expression { return params.ARMv8 }
+          }
+          agent { label 'armv8' }
+          steps { script {  debugBuild.doDebugBuild( (!params.Linux && !params.MacOS && !params.Coverage) ? true : false ) } }
+        }
+        stage('MacOS') {
+          when {
+            beforeAgent true
+            expression { return params.MacOS }
+          }
+          agent { label 'mac' }
+          steps {
+            script { macDebugBuild.doDebugBuild( (!params.Linux && !params.Coverage) ? true : false ) }
+          }
+        }
+      }
+    }
+    stage ('Pre-merge test') {
+      when { expression { params.MERGE_PR } }
+      parallel {
+        stage ('Linux') {
+          agent { label 'x86_64_aws_build' }
+          steps { script { debugBuild.doTestStep(testSelect.chooseTestType()) } }
+        }
+        stage('ARMv7') {
+          agent { label 'armv7' }
+          steps { script { debugBuild.doTestStep(testSelect.chooseTestType()) } }
+        }
+        stage('ARMv8') {
+          agent { label 'armv8' }
+          steps { script { debugBuild.doTestStep(testSelect.chooseTestType()) } }
+        }
+        stage('MacOS') {
+          agent { label 'mac' }
+          steps {
+            script { macDebugBuild.doTestStep(testSelect.chooseTestType()) }
           }
         }
       }
