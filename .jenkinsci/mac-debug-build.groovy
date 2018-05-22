@@ -35,7 +35,7 @@ def doPreCoverageStep() {
   sh "cmake --build build --target coverage.init.info"
 }
   
-def doTestStep(testList) {
+def doTestStep() {
   sh """
     export IROHA_POSTGRES_PASSWORD=${IROHA_POSTGRES_PASSWORD}; \
     export IROHA_POSTGRES_USER=${IROHA_POSTGRES_USER}; \
@@ -44,7 +44,7 @@ def doTestStep(testList) {
     pg_ctl -D /var/jenkins/${GIT_COMMIT}-${BUILD_NUMBER}/ -o '-p 5433' -l /var/jenkins/${GIT_COMMIT}-${BUILD_NUMBER}/events.log start; \
     psql -h localhost -d postgres -p 5433 -U ${IROHA_POSTGRES_USER} --file=<(echo create database ${IROHA_POSTGRES_USER};)
   """
-  def testExitCode = sh(script: """cd build/ && IROHA_POSTGRES_HOST=localhost IROHA_POSTGRES_PORT=5433 ctest -R '${testList}' """, returnStatus: true)
+  def testExitCode = sh(script: """cd build/ && IROHA_POSTGRES_HOST=localhost IROHA_POSTGRES_PORT=5433 ctest -R '${env.LIST_TESTS_RUN_BY_DEFAULT}' """, returnStatus: true)
   if (testExitCode != 0) {
     currentBuild.currentResult = "UNSTABLE"
   }

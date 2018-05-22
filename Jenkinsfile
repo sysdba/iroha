@@ -53,6 +53,7 @@ pipeline {
     IROHA_POSTGRES_PASSWORD = "${GIT_COMMIT}"
     IROHA_POSTGRES_PORT = 5432
 
+    LIST_TESTS_RUN_BY_DEFAULT = "module*"
     dockerAgentImage = ''
     dockerImageFile = ''
     workspace_path = ''
@@ -142,7 +143,7 @@ pipeline {
             beforeAgent true
             anyOf {
               allOf {
-                expression { env.CHANGE_ID != null }
+                expression { changeRequest }
                 expression { GIT_PREVIOUS_COMMIT == null } // on the open PR
               }
               expression { return params.MacOS }
@@ -170,7 +171,7 @@ pipeline {
         anyOf {
           expression { params.Coverage }  // by request
           allOf {
-            expression { env.CHANGE_ID != null }
+            expression { changeRequest }
             expression { GIT_PREVIOUS_COMMIT == null } // on the open PR
           }
           allOf {
@@ -206,6 +207,7 @@ pipeline {
         }
       }
     }
+
     stage('Tests') {
       when {
         allOf {
@@ -221,9 +223,9 @@ pipeline {
           agent { label 'x86_64_aws_test' }
           steps {
             script {
-              def selector = load ".jenkinsci/test-launcher.groovy"
+              
               def tests = load ".jenkinsci/debug-build.groovy"
-              tests.doTestStep(selector.chooseTestType())
+              tests.doTestStep()
             }
           }
         }
@@ -237,7 +239,7 @@ pipeline {
             script {
               def selector = load ".jenkinsci/test-launcher.groovy"
               def tests = load ".jenkinsci/debug-build.groovy"
-              tests.doTestStep(selector.chooseTestType())
+              tests.doTestStep()
             }
           }
         }
@@ -251,7 +253,7 @@ pipeline {
             script {
               def selector = load ".jenkinsci/test-launcher.groovy"
               def tests = load ".jenkinsci/debug-build.groovy"
-              tests.doTestStep(selector.chooseTestType())
+              tests.doTestStep()
             }
           }
         }
@@ -265,7 +267,7 @@ pipeline {
             script {
               def selector = load ".jenkinsci/test-launcher.groovy"
               def tests = load ".jenkinsci/mac-debug-build.groovy"
-              tests.doTestStep(selector.chooseTestType())
+              tests.doTestStep()
             }
           }
         }
@@ -276,7 +278,7 @@ pipeline {
         anyOf {
           expression { params.Coverage }  // by request
           allOf {
-            expression { env.CHANGE_ID != null }
+            expression { changeRequest }
             expression { GIT_PREVIOUS_COMMIT == null } // on the open PR
           }
           allOf {
@@ -342,6 +344,48 @@ pipeline {
               }
             }
           }
+        }
+      }
+    }
+    stage ('Pre-merge request') {
+      when {
+        allOf {
+          expression { changeRequest }
+          expression { GIT_PREVIOUS_COMMIT != null } // on the commit to PR
+        }
+      }
+      steps {
+        script {
+          def selector = load ".jenkinsci/test-launcher.groovy"
+          def tests = load ".jenkinsci/debug-build.groovy"
+          tests.doTestStep(selector.chooseTestType())
+        }
+      }
+    }
+    stage ('Pre-merge build') {
+      when {
+        expression {  }
+      }
+      steps {
+        script {
+          def selector = load ".jenkinsci/test-launcher.groovy"
+          def tests = load ".jenkinsci/debug-build.groovy"
+          tests.doTestStep(selector.chooseTestType())
+        }
+      }
+    }
+    stage ('Pre-merge test') {
+      when {
+        allOf {
+          expression { changeRequest }
+          expression { GIT_PREVIOUS_COMMIT != null } // on the commit to PR
+        }
+      }
+      steps {
+        script {
+          def selector = load ".jenkinsci/test-launcher.groovy"
+          def tests = load ".jenkinsci/debug-build.groovy"
+          tests.doTestStep(selector.chooseTestType())
         }
       }
     }
