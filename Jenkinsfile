@@ -145,7 +145,7 @@ pipeline {
             anyOf {
               allOf {
                 expression { env.CHANGE_ID != null }
-                expression { try { if ( GIT_PREVIOUS_COMMIT != null ) { return false } }
+                expression { try { if ( GIT_PREVIOUS_COMMIT != null ) { return true } }
                              finally { return false } }    // on the open PR
               }
               expression { return params.MacOS }
@@ -174,7 +174,7 @@ pipeline {
           expression { params.Coverage }  // by request
           allOf {
             expression { env.CHANGE_ID != null }
-            expression { try { if ( GIT_PREVIOUS_COMMIT != null ) { return false } }
+            expression { try { if ( GIT_PREVIOUS_COMMIT != null ) { return true } }
                          finally { return false } }    // on the open PR
           }
           allOf {
@@ -282,7 +282,7 @@ pipeline {
           expression { params.Coverage }  // by request
           allOf {
             expression { env.CHANGE_ID != null }
-            expression { try { if ( GIT_PREVIOUS_COMMIT != null ) { return false } }
+            expression { try { if ( GIT_PREVIOUS_COMMIT != null ) { return true } }
                          finally { return false } }    // on the open PR
           }
           allOf {
@@ -497,7 +497,7 @@ pipeline {
       when {
         allOf {
           expression { env.CHANGE_ID != null }
-          expression { try { if ( GIT_PREVIOUS_COMMIT != null ) { return false } }
+          expression { try { if ( GIT_PREVIOUS_COMMIT != null ) { return true } }
                        finally { return false } }    // on the open PR
         }
       }
