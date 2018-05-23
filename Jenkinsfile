@@ -54,6 +54,8 @@ pipeline {
     IROHA_POSTGRES_PORT = 5432
 
     IS_MERGE_ACCEPTED = ''
+    GIT_COMMITER_EMAIL = ''
+
     dockerAgentImage = ''
     dockerImageFile = ''
     workspace_path = ''
@@ -70,6 +72,7 @@ pipeline {
       agent { label 'master' }
       steps {
         script {
+          GIT_COMMITER_EMAIL = sh(script: """git --no-pager show -s --format='%ae' ${env.GIT_COMMIT}""", returnStdout: true).trim()
           if (GIT_LOCAL_BRANCH != "develop") {
             def builds = load ".jenkinsci/cancel-builds-same-job.groovy"
             builds.cancelSameJobBuilds()
@@ -624,9 +627,18 @@ pipeline {
     }
   }
   post {
-    always {
+    // TODO: learn about of order: always in post-step executes before 
+    success {
       script {
-        GIT_AUTHOR_EMAIL = sh(script: """git --no-pager show -s --format='%ae' ${env.GIT_COMMIT}""", returnStdout: true).trim()
+        // merge pull request if everything is ok
+        def merge = load ".jenkinsci/github-merge.groovy"
+        currentBuild.currentResult = merge.mergePullRequest() ? "SUCCESS" : "FAILURE"
+      }
+    }
+    cleanup {
+      script {
+        // TODO: prepare email body content somehow (e.g. using class)
+        sh "echo ${currentResult.currentBuild}"
       }
       emailext( subject: '$DEFAULT_SUBJECT',
                 body: '$DEFAULT_CONTENT',
@@ -634,7 +646,6 @@ pipeline {
                 compressLog: true,
                 to: "${GIT_AUTHOR_EMAIL}"
       )
-      // clear workspace on agents and 
       script {
         if ( params.Linux ) {
           node ('x86_64_aws_test') {
