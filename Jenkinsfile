@@ -145,7 +145,7 @@ pipeline {
             anyOf {
               allOf {
                 expression { return env.CHANGE_ID }
-                expression { return GIT_PREVIOUS_COMMIT }
+                not { expression { return GIT_PREVIOUS_COMMIT } }
               }
               expression { return params.MacOS }
             }
