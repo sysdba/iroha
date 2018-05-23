@@ -632,7 +632,7 @@ pipeline {
       script {
         // merge pull request if everything is ok
         def merge = load ".jenkinsci/github-merge.groovy"
-        currentBuild.currentResult = merge.mergePullRequest() ? "SUCCESS" : "FAILURE"
+        currentBuild.result = merge.mergePullRequest() ? "SUCCESS" : "FAILURE"
       }
     }
     cleanup {
