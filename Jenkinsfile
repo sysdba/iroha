@@ -144,9 +144,8 @@ pipeline {
             beforeAgent true
             anyOf {
               allOf {
-                expression { env.CHANGE_ID != null }
-                expression { try { if ( GIT_PREVIOUS_COMMIT != null ) { return true } }
-                             finally { return false } }    // on the open PR
+                expression { return env.CHANGE_ID }
+                expression { return GIT_PREVIOUS_COMMIT }
               }
               expression { return params.MacOS }
             }
@@ -173,9 +172,8 @@ pipeline {
         anyOf {
           expression { params.Coverage }  // by request
           allOf {
-            expression { env.CHANGE_ID != null }
-            expression { try { if ( GIT_PREVIOUS_COMMIT != null ) { return true } }
-                         finally { return false } }    // on the open PR
+            expression { return env.CHANGE_ID }
+            expression { return GIT_PREVIOUS_COMMIT }
           }
           allOf {
             expression { params.BUILD_TYPE == 'Debug' }
@@ -281,9 +279,8 @@ pipeline {
         anyOf {
           expression { params.Coverage }  // by request
           allOf {
-            expression { env.CHANGE_ID != null }
-            expression { try { if ( GIT_PREVIOUS_COMMIT != null ) { return true } }
-                         finally { return false } }    // on the open PR
+            expression { return env.CHANGE_ID }
+            expression { return GIT_PREVIOUS_COMMIT }
           }
           allOf {
             expression { params.BUILD_TYPE == 'Debug' }
@@ -496,9 +493,8 @@ pipeline {
     stage ('Pre-merge request') {
       when {
         allOf {
-          expression { env.CHANGE_ID != null }
-          expression { try { if ( GIT_PREVIOUS_COMMIT != null ) { return true } }
-                       finally { return false } }    // on the open PR
+          expression { return env.CHANGE_ID }
+          expression { return GIT_PREVIOUS_COMMIT }
         }
       }
       agent { label 'master' }
