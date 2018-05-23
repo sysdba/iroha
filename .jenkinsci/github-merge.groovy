@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 
-@Grab(group:'org.codehaus.groovy.modules.http-builder', module:'http-builder', version:'0.6.0')
+@Grab(group='org.codehaus.groovy.modules.http-builder', module='http-builder', version='0.6.0')
 
 import groovyx.net.http.*
 
