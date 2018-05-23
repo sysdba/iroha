@@ -512,8 +512,10 @@ pipeline {
     }
     stage ('Pre-merge build') {
       when {
-        expression { return params.MERGE_PR }
-        expression { return env.IS_MERGE_ACCEPTED == 'true' }
+        anyOf {
+          expression { return params.MERGE_PR }
+          expression { return env.IS_MERGE_ACCEPTED == 'true' }
+        }
       }
       parallel {
         stage ('Linux') {
@@ -572,8 +574,10 @@ pipeline {
     }
     stage ('Pre-merge test') {
       when {
-        expression { return params.MERGE_PR }
-        expression { return env.IS_MERGE_ACCEPTED == 'true' }
+        anyOf {
+          expression { return params.MERGE_PR }
+          expression { return env.IS_MERGE_ACCEPTED == 'true' }
+        }
       }
       parallel {
         stage ('Linux') {
