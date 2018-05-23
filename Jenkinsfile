@@ -501,14 +501,9 @@ pipeline {
           if ( ! params.Merge_PR ) {
             def userInput = input message: 'Would you like to merge current PR?', ok: 'Merge', parameters: [booleanParam(defaultValue: false, description: 'Whether to merge current PR', name: 'MERGE')]
             if ( params.MERGE ) {
+              sh "echo merge is going to happen"
               params.Merge_PR = true
             }
-          }
-          if ( params.Merge_PR ) {
-            params.ARMv7 = !params.ARMv7
-            params.ARMv8 = !params.ARMv8
-            params.Linux = !params.Linux
-            params.MacOS = !params.MacOS
           }
         }
       }
@@ -519,7 +514,7 @@ pipeline {
         stage ('Linux') {
           when {
             beforeAgent true
-            expression { return params.Linux }
+            not { expression { return params.Linux } }
           }
           agent { label 'x86_64_aws_build' }
           steps { 
@@ -532,7 +527,7 @@ pipeline {
         stage('ARMv7') {
           when {
             beforeAgent true
-            expression { return params.ARMv7 }
+            not { expression { return params.ARMv7 } }
           }
           agent { label 'armv7' }
           steps { 
@@ -545,7 +540,7 @@ pipeline {
         stage('ARMv8') {
           when {
             beforeAgent true
-            expression { return params.ARMv8 }
+            not { expression { return params.ARMv8 } }
           }
           agent { label 'armv8' }
           steps {
@@ -558,7 +553,7 @@ pipeline {
         stage('MacOS') {
           when {
             beforeAgent true
-            expression { return params.MacOS }
+            not { expression { return params.MacOS } }
           }
           agent { label 'mac' }
           steps {
