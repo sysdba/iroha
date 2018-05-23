@@ -38,13 +38,6 @@ properties([parameters([
   choice(choices: 'arm64-v8a\narmeabi-v7a\narmeabi\nx86_64\nx86', description: 'Android Bindings Platform', name: 'ABPlatform'),
   string(defaultValue: '4', description: 'How much parallelism should we exploit. "4" is optimal for machines with modest amount of memory and at least 4 cores', name: 'PARALLELISM')])])
 
-def debugBuild = load ".jenkinsci/debug-build.groovy"
-def macDebugBuild = load ".jenkinsci/mac-debug-build.groovy"
-def releaseBuild = load ".jenkinsci/release-build.groovy"
-def macReleaseBuild = load ".jenkinsci/mac-release-build.groovy"
-def coverage = load ".jenkinsci/selected-branches-coverage.groovy"
-def testSelect = load ".jenkinsci/test-launcher.groovy"
-
 pipeline {
   environment {
     CCACHE_DIR = '/opt/.ccache'
@@ -95,9 +88,12 @@ pipeline {
           steps {
             script {
               if (params.BUILD_TYPE == 'Debug') {
+                def debugBuild = load ".jenkinsci/debug-build.groovy"
+                def coverage = load ".jenkinsci/selected-branches-coverage.groovy"
                 debugBuild.doDebugBuild(coverage.selectedBranchesCoverage())
               }
               else {
+                def releaseBuild = load ".jenkinsci/release-build.groovy"
                 releaseBuild.doReleaseBuild()
               }
             }
@@ -112,9 +108,12 @@ pipeline {
           steps {
             script {
               if (params.BUILD_TYPE == 'Debug') {
+                def debugBuild = load ".jenkinsci/debug-build.groovy"
+                def coverage = load ".jenkinsci/selected-branches-coverage.groovy"
                 debugBuild.doDebugBuild( (!params.Linux && !params.MacOS && !params.ARMv8) ? coverage.selectedBranchesCoverage() : false )
               }
               else {
+                def releaseBuild = load ".jenkinsci/release-build.groovy"
                 releaseBuild.doReleaseBuild()
               }
             }
@@ -129,9 +128,12 @@ pipeline {
           steps {
             script {
               if (params.BUILD_TYPE == 'Debug') {
+                def debugBuild = load ".jenkinsci/debug-build.groovy"
+                def coverage = load ".jenkinsci/selected-branches-coverage.groovy"
                 debugBuild.doDebugBuild( (!params.Linux && !params.MacOS) ? coverage.selectedBranchesCoverage() : false )
               }
               else {
+                def releaseBuild = load ".jenkinsci/release-build.groovy"
                 releaseBuild.doReleaseBuild()
               }
             }
@@ -152,9 +154,12 @@ pipeline {
           steps {
             script {
               if (params.BUILD_TYPE == 'Debug') {
+                def macDebugBuild = load ".jenkinsci/mac-debug-build.groovy"
+                def coverage = load ".jenkinsci/selected-branches-coverage.groovy"
                 macDebugBuild.doDebugBuild( !params.Linux ? coverage.selectedBranchesCoverage() : false )
               }
               else {
+                def macReleaseBuild = load ".jenkinsci/mac-release-build.groovy"
                 macReleaseBuild.doReleaseBuild()
               }
             }
@@ -219,6 +224,8 @@ pipeline {
           agent { label 'x86_64_aws_test' }
           steps {
             script {
+              def debugBuild = load ".jenkinsci/debug-build.groovy"
+              def testSelect = load ".jenkinsci/test-launcher.groovy"
               debugBuild.doTestStep(testSelect.chooseTestType())
             }
           }
@@ -231,6 +238,8 @@ pipeline {
           agent { label 'armv7' }
           steps {
             script {
+              def debugBuild = load ".jenkinsci/debug-build.groovy"
+              def testSelect = load ".jenkinsci/test-launcher.groovy"
               debugBuild.doTestStep(testSelect.chooseTestType())
             }
           }
@@ -243,6 +252,8 @@ pipeline {
           agent { label 'armv8' }
           steps {
             script {
+              def debugBuild = load ".jenkinsci/debug-build.groovy"
+              def testSelect = load ".jenkinsci/test-launcher.groovy"
               debugBuild.doTestStep(testSelect.chooseTestType())
             }
           }
@@ -255,6 +266,8 @@ pipeline {
           agent { label 'mac' }
           steps {
             script {
+              def macDebugBuild = load ".jenkinsci/mac-debug-build.groovy"
+              def testSelect = load ".jenkinsci/test-launcher.groovy"
               macDebugBuild.doTestStep(testSelect.chooseTestType())
             }
           }
@@ -516,7 +529,12 @@ pipeline {
             expression { return params.Linux }
           }
           agent { label 'x86_64_aws_build' }
-          steps { script { debugBuild.doDebugBuild(coverageEnabled: true) } }
+          steps { 
+            script {
+              def debugBuild = load ".jenkinsci/debug-build.groovy"
+              debugBuild.doDebugBuild( !params.Coverage ? true : false ) 
+            }
+          }
         }
         stage('ARMv7') {
           when {
@@ -524,7 +542,12 @@ pipeline {
             expression { return params.ARMv7 }
           }
           agent { label 'armv7' }
-          steps { script { debugBuild.doDebugBuild( (!params.Linux && !params.MacOS && !params.ARMv8 && !params.Coverage) ? true : false ) } }
+          steps { 
+            script {
+              def debugBuild = load ".jenkinsci/debug-build.groovy"
+              debugBuild.doDebugBuild( (!params.Linux && !params.MacOS && !params.ARMv8 && !params.Coverage) ? true : false ) 
+            }
+          }
         }
         stage('ARMv8') {
           when {
@@ -532,7 +555,12 @@ pipeline {
             expression { return params.ARMv8 }
           }
           agent { label 'armv8' }
-          steps { script {  debugBuild.doDebugBuild( (!params.Linux && !params.MacOS && !params.Coverage) ? true : false ) } }
+          steps {
+            script {
+              def debugBuild = load ".jenkinsci/debug-build.groovy"
+              debugBuild.doDebugBuild( (!params.Linux && !params.MacOS && !params.Coverage) ? true : false )
+            }
+          }
         }
         stage('MacOS') {
           when {
@@ -541,7 +569,10 @@ pipeline {
           }
           agent { label 'mac' }
           steps {
-            script { macDebugBuild.doDebugBuild( (!params.Linux && !params.Coverage) ? true : false ) }
+            script {
+              def macDebugBuild = load ".jenkinsci/mac-debug-build.groovy"
+              macDebugBuild.doDebugBuild( (!params.Linux && !params.Coverage) ? true : false )
+            }
           }
         }
       }
@@ -551,20 +582,42 @@ pipeline {
       parallel {
         stage ('Linux') {
           agent { label 'x86_64_aws_build' }
-          steps { script { debugBuild.doTestStep(testSelect.chooseTestType()) } }
+          steps {
+            script {
+              def debugBuild = load ".jenkinsci/debug-build.groovy"
+              def testSelect = load ".jenkinsci/test-launcher.groovy"
+              debugBuild.doTestStep(testSelect.chooseTestType())
+            }
+          }
         }
         stage('ARMv7') {
           agent { label 'armv7' }
-          steps { script { debugBuild.doTestStep(testSelect.chooseTestType()) } }
+          steps {
+            script {
+              def debugBuild = load ".jenkinsci/debug-build.groovy"
+              def testSelect = load ".jenkinsci/test-launcher.groovy"
+              debugBuild.doTestStep(testSelect.chooseTestType())
+            }
+          }
         }
         stage('ARMv8') {
           agent { label 'armv8' }
-          steps { script { debugBuild.doTestStep(testSelect.chooseTestType()) } }
+          steps {
+            script {
+              def debugBuild = load ".jenkinsci/debug-build.groovy"
+              def testSelect = load ".jenkinsci/test-launcher.groovy"
+              debugBuild.doTestStep(testSelect.chooseTestType())
+            }
+          }
         }
         stage('MacOS') {
           agent { label 'mac' }
           steps {
-            script { macDebugBuild.doTestStep(testSelect.chooseTestType()) }
+            script {
+              def macDebugBuild = load ".jenkinsci/mac-debug-build.groovy"
+              def testSelect = load ".jenkinsci/test-launcher.groovy"
+              macDebugBuild.doTestStep(testSelect.chooseTestType())
+            }
           }
         }
       }
