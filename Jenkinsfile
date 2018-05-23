@@ -501,13 +501,9 @@ pipeline {
       steps {
         script {
           if ( ! params.Merge_PR ) {
-            input {
-              message "Merge current Pull Request?"
-              ok "Merge"
-              parameters {
-                booleanParam(name: 'MERGE', defaultValue: 'false', description: 'Whether to merge PR?')
-              }
-            }
+            List<hudson.model.ParameterDefinition> listOfParameters=new ArrayList<hudson.model.ParameterDefinition>()
+            listOfParameters.add(new hudson.model.BooleanParameterDefinition('MERGE', false, 'Whether to merge PR?'))
+            def test = input message: 'Merge current Pull Request?', parameters:listOfParameters
             if ( params.MERGE ) {
               params.Merge_PR = true
             }
