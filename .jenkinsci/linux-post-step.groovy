@@ -24,8 +24,10 @@ def linuxPostStep() {
         """
       }
       else {
-        def cleanup = load ".jenkinsci/docker-cleanup.groovy"
-        cleanup.doDockerCleanup()
+        if ( ! env.NODE_NAME.contains('x86_64') ) {
+          def cleanup = load ".jenkinsci/docker-cleanup.groovy"
+          cleanup.doDockerCleanup()
+        }
       }
       cleanWs()
     }

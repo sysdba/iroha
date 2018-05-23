@@ -62,6 +62,7 @@ pipeline {
 
   options {
     buildDiscarder(logRotator(numToKeepStr: '20'))
+    timestamps()
   }
   
   agent any
@@ -144,7 +145,7 @@ pipeline {
             beforeAgent true
             anyOf {
               allOf {
-                expression { changeRequest }
+                expression { env.CHANGE_ID != null }
                 expression { GIT_PREVIOUS_COMMIT == null } // on the open PR
               }
               expression { return params.MacOS }
@@ -172,7 +173,7 @@ pipeline {
         anyOf {
           expression { params.Coverage }  // by request
           allOf {
-            expression { changeRequest }
+            expression { env.CHANGE_ID != null }
             expression { GIT_PREVIOUS_COMMIT == null } // on the open PR
           }
           allOf {
@@ -279,7 +280,7 @@ pipeline {
         anyOf {
           expression { params.Coverage }  // by request
           allOf {
-            expression { changeRequest }
+            expression { env.CHANGE_ID != null }
             expression { GIT_PREVIOUS_COMMIT == null } // on the open PR
           }
           allOf {
@@ -493,10 +494,11 @@ pipeline {
     stage ('Pre-merge request') {
       when {
         allOf {
-          expression { changeRequest }
+          expression { env.CHANGE_ID != null }
           expression { GIT_PREVIOUS_COMMIT != null } // on the commit to PR
         }
       }
+      agent { label 'master' }
       steps {
         script {
           if ( ! params.Merge_PR ) {

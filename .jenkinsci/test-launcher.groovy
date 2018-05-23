@@ -8,6 +8,13 @@
 // - "system_" for system tests, respectively.
 
 def chooseTestType() {
+	if ( params.Merge_PR ) {
+		return "(module|integration|system|regression)*"
+	}
+	if ( params.Nightly )
+	{
+		return "*"
+	}
 	return "module*"
 }
 
