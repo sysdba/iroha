@@ -59,6 +59,7 @@ def mergePullRequest() {
 }
 
 def checkMergeAcceptance() {
+	def approvalsRequired = 2
 	def gitCommitterEmail = sh(script: 'git --no-pager show -s --format=\'%ae\'', returnStdout: true).trim()
   wrap([$class: 'BuildUser']) {
   	jenkinsCommitterEmail = env.BUILD_USER_EMAIL
