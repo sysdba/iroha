@@ -20,11 +20,11 @@ def mergePullRequest() {
 			 -X POST -d "commit_title":"${commitTitle}","commit_message":"${commitMessage}","sha":"${env.GIT_COMMIT}","merge_method":"${mergeMethod}"\
 			 https://api.github.com/repos/hyperledger/iroha/pulls/${CHANGE_ID}/merge""", returnStdout: true).trim()
 	def githubResponce = sh(script: """echo ${jsonResponseReview} | grep -E "^\\d{3}")""", returnStdout: true).trim()
-	def jsonResponseReview = sh(script: """echo ${jsonResponseReview} | grep -v -E "^\\d{3}")""", returnStdout: true).trim()
+	jsonResponseReview = sh(script: """echo ${jsonResponseReview} | grep -v -E "^\\d{3}")""", returnStdout: true).trim()
 	if ( githubResponce != "200" ) {
 		return false
 	}
-	def jsonResponseReview = slurper.parseText(jsonResponseReview)
+	jsonResponseReview = slurper.parseText(jsonResponseReview)
 	if (jsonResponseReview.merge != "true") {
 		return false
 	}
