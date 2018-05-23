@@ -173,7 +173,7 @@ pipeline {
           expression { params.Coverage }  // by request
           allOf {
             expression { return env.CHANGE_ID }
-            expression { ! return GIT_PREVIOUS_COMMIT }
+            not { expression { return GIT_PREVIOUS_COMMIT } }
           }
           allOf {
             expression { params.BUILD_TYPE == 'Debug' }
@@ -280,7 +280,7 @@ pipeline {
           expression { params.Coverage }  // by request
           allOf {
             expression { return env.CHANGE_ID }
-            expression { ! return GIT_PREVIOUS_COMMIT }
+            not { expression { return GIT_PREVIOUS_COMMIT } }
           }
           allOf {
             expression { params.BUILD_TYPE == 'Debug' }
