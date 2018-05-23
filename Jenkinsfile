@@ -638,7 +638,7 @@ pipeline {
     cleanup {
       script {
         // TODO: prepare email body content somehow (e.g. using class)
-        sh "echo ${currentResult.result}"
+        sh "echo ${currentBuild.result}"
       }
       emailext( subject: '$DEFAULT_SUBJECT',
                 body: '$DEFAULT_CONTENT',
