@@ -644,7 +644,7 @@ pipeline {
                 body: '$DEFAULT_CONTENT',
                 attachLog: true,
                 compressLog: true,
-                to: "${env.GIT_COMMITER_EMAIL}"
+                to: "${GIT_COMMITER_EMAIL}"
       )
       script {
         if ( params.Linux ) {
