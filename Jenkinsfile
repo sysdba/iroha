@@ -504,7 +504,7 @@ pipeline {
 
             if ( env.inputData ) {
               sh "echo merge is going to happen"
-              env.IS_MERGE_ACCEPTED = 'true'
+              IS_MERGE_ACCEPTED = "true"
             }
           }
         }
@@ -514,7 +514,7 @@ pipeline {
       when {
         anyOf {
           expression { return params.MERGE_PR }
-          expression { return env.IS_MERGE_ACCEPTED == 'true' }
+          expression { return IS_MERGE_ACCEPTED == "true" }
         }
       }
       parallel {
@@ -576,7 +576,7 @@ pipeline {
       when {
         anyOf {
           expression { return params.MERGE_PR }
-          expression { return env.IS_MERGE_ACCEPTED == 'true' }
+          expression { return IS_MERGE_ACCEPTED == "true" }
         }
       }
       parallel {
