@@ -145,7 +145,8 @@ pipeline {
             anyOf {
               allOf {
                 expression { env.CHANGE_ID != null }
-                expression { GIT_PREVIOUS_COMMIT == null } // on the open PR
+                expression { try { if ( GIT_PREVIOUS_COMMIT != null ) { return false } }
+                             finally { return false } }    // on the open PR
               }
               expression { return params.MacOS }
             }
@@ -173,7 +174,8 @@ pipeline {
           expression { params.Coverage }  // by request
           allOf {
             expression { env.CHANGE_ID != null }
-            expression { GIT_PREVIOUS_COMMIT == null } // on the open PR
+            expression { try { if ( GIT_PREVIOUS_COMMIT != null ) { return false } }
+                         finally { return false } }    // on the open PR
           }
           allOf {
             expression { params.BUILD_TYPE == 'Debug' }
@@ -280,7 +282,8 @@ pipeline {
           expression { params.Coverage }  // by request
           allOf {
             expression { env.CHANGE_ID != null }
-            expression { GIT_PREVIOUS_COMMIT == null } // on the open PR
+            expression { try { if ( GIT_PREVIOUS_COMMIT != null ) { return false } }
+                         finally { return false } }    // on the open PR
           }
           allOf {
             expression { params.BUILD_TYPE == 'Debug' }
@@ -494,7 +497,8 @@ pipeline {
       when {
         allOf {
           expression { env.CHANGE_ID != null }
-          expression { GIT_PREVIOUS_COMMIT != null } // on the commit to PR
+          expression { try { if ( GIT_PREVIOUS_COMMIT != null ) { return false } }
+                       finally { return false } }    // on the open PR
         }
       }
       agent { label 'master' }
