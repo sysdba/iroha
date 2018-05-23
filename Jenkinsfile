@@ -53,6 +53,7 @@ pipeline {
     IROHA_POSTGRES_PASSWORD = "${GIT_COMMIT}"
     IROHA_POSTGRES_PORT = 5432
 
+    IS_MERGE_ACCEPTED = ''
     dockerAgentImage = ''
     dockerImageFile = ''
     workspace_path = ''
@@ -503,14 +504,17 @@ pipeline {
 
             if ( env.inputData ) {
               sh "echo merge is going to happen"
-              params.Merge_PR = true
+              env.IS_MERGE_ACCEPTED = 'true'
             }
           }
         }
       }
     }
     stage ('Pre-merge build') {
-      when { expression { return params.MERGE_PR } }
+      when {
+        expression { return params.MERGE_PR }
+        expression { return env.IS_MERGE_ACCEPTED == 'true' }
+      }
       parallel {
         stage ('Linux') {
           when {
@@ -567,7 +571,10 @@ pipeline {
       }
     }
     stage ('Pre-merge test') {
-      when { expression { return params.MERGE_PR } }
+      when {
+        expression { return params.MERGE_PR }
+        expression { return env.IS_MERGE_ACCEPTED == 'true' }
+      }
       parallel {
         stage ('Linux') {
           agent { label 'x86_64_aws_build' }
