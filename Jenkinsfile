@@ -514,7 +514,7 @@ pipeline {
       }
     }
     stage ('Pre-merge build') {
-      when { expression { params.MERGE_PR } }
+      when { expression { return params.MERGE_PR } }
       parallel {
         stage ('Linux') {
           when {
@@ -571,7 +571,7 @@ pipeline {
       }
     }
     stage ('Pre-merge test') {
-      when { expression { params.MERGE_PR } }
+      when { expression { return params.MERGE_PR } }
       parallel {
         stage ('Linux') {
           agent { label 'x86_64_aws_build' }
