@@ -91,11 +91,11 @@ pipeline {
               if (params.BUILD_TYPE == 'Debug') {
                 def debugBuild = load ".jenkinsci/debug-build.groovy"
                 def coverage = load ".jenkinsci/selected-branches-coverage.groovy"
-                debugBuild.doDebugBuild(coverage.selectedBranchesCoverage())
+                // debugBuild.doDebugBuild(coverage.selectedBranchesCoverage())
               }
               else {
                 def releaseBuild = load ".jenkinsci/release-build.groovy"
-                releaseBuild.doReleaseBuild()
+                // releaseBuild.doReleaseBuild()
               }
             }
           }
@@ -111,11 +111,11 @@ pipeline {
               if (params.BUILD_TYPE == 'Debug') {
                 def debugBuild = load ".jenkinsci/debug-build.groovy"
                 def coverage = load ".jenkinsci/selected-branches-coverage.groovy"
-                debugBuild.doDebugBuild( (!params.Linux && !params.MacOS && !params.ARMv8) ? coverage.selectedBranchesCoverage() : false )
+                // debugBuild.doDebugBuild( (!params.Linux && !params.MacOS && !params.ARMv8) ? coverage.selectedBranchesCoverage() : false )
               }
               else {
                 def releaseBuild = load ".jenkinsci/release-build.groovy"
-                releaseBuild.doReleaseBuild()
+                // releaseBuild.doReleaseBuild()
               }
             }
           }
@@ -131,11 +131,11 @@ pipeline {
               if (params.BUILD_TYPE == 'Debug') {
                 def debugBuild = load ".jenkinsci/debug-build.groovy"
                 def coverage = load ".jenkinsci/selected-branches-coverage.groovy"
-                debugBuild.doDebugBuild( (!params.Linux && !params.MacOS) ? coverage.selectedBranchesCoverage() : false )
+                // debugBuild.doDebugBuild( (!params.Linux && !params.MacOS) ? coverage.selectedBranchesCoverage() : false )
               }
               else {
                 def releaseBuild = load ".jenkinsci/release-build.groovy"
-                releaseBuild.doReleaseBuild()
+                // releaseBuild.doReleaseBuild()
               }
             }
           }
@@ -157,11 +157,11 @@ pipeline {
               if (params.BUILD_TYPE == 'Debug') {
                 def macDebugBuild = load ".jenkinsci/mac-debug-build.groovy"
                 def coverage = load ".jenkinsci/selected-branches-coverage.groovy"
-                macDebugBuild.doDebugBuild( !params.Linux ? coverage.selectedBranchesCoverage() : false )
+                // macDebugBuild.doDebugBuild( !params.Linux ? coverage.selectedBranchesCoverage() : false )
               }
               else {
                 def macReleaseBuild = load ".jenkinsci/mac-release-build.groovy"
-                macReleaseBuild.doReleaseBuild()
+                // macReleaseBuild.doReleaseBuild()
               }
             }
           }
@@ -204,7 +204,7 @@ pipeline {
             else {
               coverage = load '.jenkinsci/debug-build.groovy'
             }
-            coverage.doPreCoverageStep()
+            // coverage.doPreCoverageStep()
           }
         }
       }
@@ -227,7 +227,7 @@ pipeline {
             script {
               def debugBuild = load ".jenkinsci/debug-build.groovy"
               def testSelect = load ".jenkinsci/test-launcher.groovy"
-              debugBuild.doTestStep(testSelect.chooseTestType())
+              // debugBuild.doTestStep(testSelect.chooseTestType())
             }
           }
         }
@@ -241,7 +241,7 @@ pipeline {
             script {
               def debugBuild = load ".jenkinsci/debug-build.groovy"
               def testSelect = load ".jenkinsci/test-launcher.groovy"
-              debugBuild.doTestStep(testSelect.chooseTestType())
+              // debugBuild.doTestStep(testSelect.chooseTestType())
             }
           }
         }
@@ -255,7 +255,7 @@ pipeline {
             script {
               def debugBuild = load ".jenkinsci/debug-build.groovy"
               def testSelect = load ".jenkinsci/test-launcher.groovy"
-              debugBuild.doTestStep(testSelect.chooseTestType())
+              // debugBuild.doTestStep(testSelect.chooseTestType())
             }
           }
         }
@@ -269,7 +269,7 @@ pipeline {
             script {
               def macDebugBuild = load ".jenkinsci/mac-debug-build.groovy"
               def testSelect = load ".jenkinsci/test-launcher.groovy"
-              macDebugBuild.doTestStep(testSelect.chooseTestType())
+              // macDebugBuild.doTestStep(testSelect.chooseTestType())
             }
           }
         }
@@ -313,7 +313,7 @@ pipeline {
                 else {
                   coverage = load '.jenkinsci/debug-build.groovy'
                 }
-                  coverage.doPostCoverageCoberturaStep()
+                  // coverage.doPostCoverageCoberturaStep()
               }
             }
           }
@@ -342,7 +342,7 @@ pipeline {
                 else {
                   coverage = load '.jenkinsci/debug-build.groovy'
                 }
-                coverage.doPostCoverageSonarStep()
+                // coverage.doPostCoverageSonarStep()
               }
             }
           }
@@ -534,7 +534,7 @@ pipeline {
           steps { 
             script {
               def debugBuild = load ".jenkinsci/debug-build.groovy"
-              debugBuild.doDebugBuild( !params.Coverage ? true : false ) 
+              // debugBuild.doDebugBuild( !params.Coverage ? true : false ) 
             }
           }
         }
@@ -547,7 +547,7 @@ pipeline {
           steps { 
             script {
               def debugBuild = load ".jenkinsci/debug-build.groovy"
-              debugBuild.doDebugBuild( (!params.Linux && !params.MacOS && !params.ARMv8 && !params.Coverage) ? true : false ) 
+              // debugBuild.doDebugBuild( (!params.Linux && !params.MacOS && !params.ARMv8 && !params.Coverage) ? true : false ) 
             }
           }
         }
@@ -560,7 +560,7 @@ pipeline {
           steps {
             script {
               def debugBuild = load ".jenkinsci/debug-build.groovy"
-              debugBuild.doDebugBuild( (!params.Linux && !params.MacOS && !params.Coverage) ? true : false )
+              // debugBuild.doDebugBuild( (!params.Linux && !params.MacOS && !params.Coverage) ? true : false )
             }
           }
         }
@@ -573,7 +573,7 @@ pipeline {
           steps {
             script {
               def macDebugBuild = load ".jenkinsci/mac-debug-build.groovy"
-              macDebugBuild.doDebugBuild( (!params.Linux && !params.Coverage) ? true : false )
+              // macDebugBuild.doDebugBuild( (!params.Linux && !params.Coverage) ? true : false )
             }
           }
         }
@@ -588,7 +588,7 @@ pipeline {
             script {
               def debugBuild = load ".jenkinsci/debug-build.groovy"
               def testSelect = load ".jenkinsci/test-launcher.groovy"
-              debugBuild.doTestStep(testSelect.chooseTestType())
+              // debugBuild.doTestStep(testSelect.chooseTestType())
             }
           }
         }
@@ -598,7 +598,7 @@ pipeline {
             script {
               def debugBuild = load ".jenkinsci/debug-build.groovy"
               def testSelect = load ".jenkinsci/test-launcher.groovy"
-              debugBuild.doTestStep(testSelect.chooseTestType())
+              // debugBuild.doTestStep(testSelect.chooseTestType())
             }
           }
         }
@@ -608,7 +608,7 @@ pipeline {
             script {
               def debugBuild = load ".jenkinsci/debug-build.groovy"
               def testSelect = load ".jenkinsci/test-launcher.groovy"
-              debugBuild.doTestStep(testSelect.chooseTestType())
+              // debugBuild.doTestStep(testSelect.chooseTestType())
             }
           }
         }
@@ -618,7 +618,7 @@ pipeline {
             script {
               def macDebugBuild = load ".jenkinsci/mac-debug-build.groovy"
               def testSelect = load ".jenkinsci/test-launcher.groovy"
-              macDebugBuild.doTestStep(testSelect.chooseTestType())
+              // macDebugBuild.doTestStep(testSelect.chooseTestType())
             }
           }
         }
