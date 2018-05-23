@@ -496,13 +496,10 @@ pipeline {
           expression { return GIT_PREVIOUS_COMMIT }
         }
       }
-      agent { label 'master' }
       steps {
         script {
           if ( ! params.Merge_PR ) {
-            List<hudson.model.ParameterDefinition> listOfParameters=new ArrayList<hudson.model.ParameterDefinition>()
-            listOfParameters.add(new hudson.model.BooleanParameterDefinition('MERGE', false, 'Whether to merge PR?'))
-            def test = input message: 'Merge current Pull Request?', parameters:listOfParameters
+            input message: 'Would you like to merge current PR?', ok: 'Merge', parameters: [booleanParam(defaultValue: false, description: 'Whether to merge current PR', name: 'MERGE')]
             if ( params.MERGE ) {
               params.Merge_PR = true
             }
