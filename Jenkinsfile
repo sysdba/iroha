@@ -499,9 +499,11 @@ pipeline {
       steps {
         script {
           if ( ! params.Merge_PR ) {
-            def userInput = input message: 'Would you like to merge current PR?', ok: 'Merge' //, parameters: [booleanParam(defaultValue: false, description: 'Whether to merge current PR', name: 'MERGE')]
-            sh "echo ${userInput}"
-            if ( userInput == "true" ) {
+            def userInput = input message: 'Would you like to merge current PR?', id: 'userInput' ok: 'Merge', parameters: [booleanParam(defaultValue: false, description: 'Whether to merge current PR', name: 'MERGE')]
+            inputConfig = userInput.MERGE?:''
+            sh "echo ${inputConfig}"
+
+            if ( userInput.MERGE ) {
               sh "echo merge is going to happen"
               params.Merge_PR = true
             }
